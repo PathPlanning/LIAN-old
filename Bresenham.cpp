@@ -1,5 +1,6 @@
 #include "Bresenham.h"
-#include "node.h"
+#include "sNode.h"
+#include "cMap.h"
 #include <algorithm>
 #include <stdexcept>
 
@@ -105,7 +106,7 @@ void iBresenham::bresenham3d(int x1, int y1, int z1, const int x2, const int y2,
     }
 }
 
-LineOfSight::LineOfSight(const Map& init_map) : force_stopped(false), map(init_map) {}
+LineOfSight::LineOfSight(const cMap& init_map) : force_stopped(false), map(init_map) {}
 
 bool LineOfSight::ProcessPoint(int i, int j, int h) {
     if (map.CellIsObstacle(i, j, h)) {
@@ -124,7 +125,7 @@ bool LineOfSight::line_of_sight(const Node &from, const Node &to) {
     return line_of_sight(from.i, from.j, from.z, to.i, to.j, to.z);
 }
 
-Liner::Liner(const Map &init_map, std::list<Node> *init_path) : map(init_map), path(init_path) {}
+Liner::Liner(std::vector<Node> *init_path) : path(init_path) {}
 
 bool Liner::ProcessPoint(int i, int j, int h) {
     Node newNode;

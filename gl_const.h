@@ -1,58 +1,104 @@
 #ifndef GL_CONST_H
-#define    GL_CONST_H
+#define GL_CONST_H
 
 #define CN_PI_CONSTANT 3.14159265359
+#define CN_SQRT2_CONSTANT 1.41421356237
+
+#define CN_LOG          "_log"
+
+//Parametrs Type
+#define CN_PT_LOGLVL    0   // log level
+#define CN_PT_AL        1   // anglelimit
+#define CN_PT_D         2   // distance
+#define CN_PT_W         3   // weight
+#define CN_PT_SL        4   // steplimit
+#define CN_PT_CRF       5   // circle raduis factor
+#define CN_PT_CHW       6   // curvature heuristic weight
+#define CN_PT_DDF       7   // coefficient to decrease distance
+#define CN_PT_LC        8   // linecost
+#define CN_PT_DM        9   // distancemin
+#define CN_PT_CLC       10  // check lesser circle
+#define CN_PT_NOP       11  // number of parents to increase radius
+
+#define CN_PT_NUM      12 // количество параметров
+
+
+//Default values of parameters
+#define CN_PTD_AL       30
+#define CN_PTD_D        4
+#define CN_PTD_W        2
+#define CN_PTD_SL       20000   // Максимальное количество шагов цикла поиска,
+                                // после которых будет сделан вывод, что пути не
+                                // существует
+#define CN_PTD_DD       100     // На сколько будем делить размер карты, чтобы получить
+                                // радиус шага
+#define CN_PTD_LR       1
+
+#define CN_PTD_LC       1.0     //linecost
+
+#define CN_PTD_DDF      1       // коэффициент, на который делится distance для получения меньшего радиуса
+
+#define CN_PTD_DMIN     3       // минимальный допустимый радиус
+
+#define CN_PTD_NOFPTOINCRAD 2   // количество предков, у которых должен совпадать радиус, чтобы можно было увеличить радиус теущей вершины
+
+//Obstacle
+#define CN_OBSTL 1
+
+//loglevel
+#define CN_LOGLVL_NO	0
+#define CN_LOGLVL_HIGH	1
+#define CN_LOGLVL_MED	1.5
+#define CN_LOGLVL_LOW	2
+
 
 /*
  * XML file tags ---------------------------------------------------------------
  */
 #define CNS_TAG_ROOT "root"
-
-#define CNS_TAG_MAP         "map"
-#define CNS_TAG_WIDTH   "width"
-#define CNS_TAG_HEIGHT  "height"
-#define CNS_TAG_STX     "startx"
-#define CNS_TAG_STY     "starty"
-#define CNS_TAG_STZ     "startz"
-#define CNS_TAG_FINX    "finishx"
-#define CNS_TAG_FINY    "finishy"
-#define CNS_TAG_FINZ    "finishz"
-#define CNS_TAG_GRID    "grid"
-#define CNS_TAG_ROW "row"
-#define CNS_TAG_MAXALT         "maxaltitude"
-#define CNS_TAG_ALTLIM         "altitudelimits"
-    #define CNS_TAG_ALTLIM_ATTR_MIN "min"
-    #define CNS_TAG_ALTLIM_ATTR_MAX "max"
-
-#define CNS_TAG_ALG     "algorithm"
-#define CNS_TAG_ST  "searchtype"
-#define CNS_TAG_HW  "hweight"
-#define CNS_TAG_MT  "metrictype"
-#define CNS_TAG_BT  "breakingties"
-#define CNS_TAG_SL  "sizelimit"
-#define CNS_TAG_AS  "allowsqueeze"
-#define CNS_TAG_LC  "linecost"
-#define CNS_TAG_DC  "diagonalcost"
-#define CNS_TAG_AD  "allowdiagonal"
-#define CNS_TAG_RP  "useresetparent"
-
-#define CNS_TAG_OPT         "options"
-#define CNS_TAG_LOGLVL  "loglevel"
-#define CNS_TAG_LOGPATH "logpath"
-#define CNS_TAG_LOGFN   "logfilename"
-
-#define CNS_TAG_LOG "log"
-#define CNS_TAG_MAPFN       "mapfilename"
-#define CNS_TAG_SUM         "summary"
-#define CNS_TAG_PATH        "path"
-#define CNS_TAG_LPLEVEL     "lplevel"
-#define CNS_TAG_HPLEVEL     "hplevel"
-#define CNS_TAG_SECTION "section"
-#define CNS_TAG_LOWLEVEL    "lowlevel"
-#define CNS_TAG_STEP    "step"
-#define CNS_TAG_OPEN    "open"
-#define CNS_TAG_POINT   "node"
-#define CNS_TAG_CLOSE   "close"
+    #define CNS_TAG_ALGORITHM       "algorithm"
+    #define CNS_TAG_MAP             "map"
+    #define CNS_TAG_HEIGHT          "height"
+    #define CNS_TAG_WIDTH           "width"
+    #define CNS_TAG_MAXALT         "maxaltitude"
+    #define CNS_TAG_ALTLIM         "altitudelimits"
+        #define CNS_TAG_ALTLIM_ATTR_MIN "min"
+        #define CNS_TAG_ALTLIM_ATTR_MAX "max"
+    #define CNS_TAG_SX              "startx"
+    #define CNS_TAG_SY              "starty"
+    #define CNS_TAG_SZ              "startz"
+    #define CNS_TAG_FX              "finishx"
+    #define CNS_TAG_FY              "finishy"
+    #define CNS_TAG_FZ              "finishz"
+    #define CNS_TAG_GRID            "grid"
+        #define CNS_TAG_ROW         "row"
+    #define CNS_TAG_ANGLELIMIT      "anglelimit"
+    #define CNS_TAG_DISTANCE        "distance"
+    #define CNS_TAG_WEIGHT          "weight"
+    #define CNS_TAG_STEPLIMIT       "steplimit"
+    #define CNS_TAG_CRADIUSFACTOR   "circleRadiusFactor"
+    #define CNS_TAG_CURVHEURWEIGHT  "curvatureHeuristicWeight"
+    #define CNS_TAG_CHECKCIRCLE     "checkLesserCircle"
+    #define CNS_TAG_LINECOST        "linecost"
+    #define CNS_TAG_DISTANCEMIN     "distanceMin"
+    #define CNS_TAG_DECRDISTFACTOR  "decreaseDistanceFactor"
+    #define CNS_TAG_NOFPTOINCRAD    "numOfParentsToIncreaseRadius"
+    #define CNS_TAG_OPTIONS         "options"
+    #define CNS_TAG_LOGLVL          "loglevel"
+    #define CNS_TAG_LOG             "log"
+        #define CNS_TAG_MAPFN       "mapfilename"
+        #define CNS_TAG_SUM         "summary"
+        #define CNS_TAG_PATH        "path"
+        #define CNS_TAG_LPLEVEL     "lplevel"
+        #define CNS_TAG_HPLEVEL     "hplevel"
+        #define CNS_TAG_ANGLES      "angles"
+        #define CNS_TAG_ANGLE       "angle"
+        #define CNS_TAG_LOWLEVEL    "lowlevel"
+            #define CNS_TAG_SECTION "section"
+            #define CNS_TAG_STEP    "step"
+            #define CNS_TAG_OPEN    "open"
+            #define CNS_TAG_NODE    "node"
+            #define CNS_TAG_CLOSE   "close"
 
 /*
  * End of XML files tags -------------------------------------------------------
@@ -61,129 +107,35 @@
 /*
  * XML files tag's attributes --------------------------------------------------
  */
-#define CNS_TAG_ATTR_NUMOFSTEPS     "numberofsteps"
-#define CNS_TAG_ATTR_NODESCREATED   "nodescreated"
-#define CNS_TAG_ATTR_LENGTH         "length"
-#define CNS_TAG_ATTR_TIME           "time"
-#define CNS_TAG_ATTR_X              "x"
-#define CNS_TAG_ATTR_Y              "y"
-#define CNS_TAG_ATTR_Z              "z"
-#define CNS_TAG_ATTR_NUM            "number"
-#define CNS_TAG_ATTR_F              "F"
-#define CNS_TAG_ATTR_G              "g"
-#define CNS_TAG_ATTR_PARX           "parent_x"
-#define CNS_TAG_ATTR_PARY           "parent_y"
-#define CNS_TAG_ATTR_PARZ           "parent_z"
-#define CNS_TAG_ATTR_STX            "start.x"
-#define CNS_TAG_ATTR_STY            "start.y"
-#define CNS_TAG_ATTR_STZ            "start.z"
-#define CNS_TAG_ATTR_FINX           "finish.x"
-#define CNS_TAG_ATTR_FINY           "finish.y"
-#define CNS_TAG_ATTR_FINZ           "finish.z"
+    #define CNS_TAG_ATTR_NUMOFSTEPS     "numberofsteps"
+    #define CNS_TAG_ATTR_NODESCREATED   "nodescreated"
+    #define CNS_TAG_ATTR_LENGTH         "pathlength"
+    #define CNS_TAG_ATTR_SECTIONS       "sections"
+    #define CNS_TAG_ATTR_TIME           "time"
+    #define CNS_TAG_ATTR_X              "x"
+    #define CNS_TAG_ATTR_Y              "y"
+    #define CNS_TAG_ATTR_Z              "z"
+    #define CNS_TAG_ATTR_NUM            "number"
+    #define CNS_TAG_ATTR_F              "F"
+    #define CNS_TAG_ATTR_G              "g"
+    #define CNS_TAG_ATTR_PARX           "parent_x"
+    #define CNS_TAG_ATTR_PARY           "parent_y"
+    #define CNS_TAG_ATTR_PARZ           "parent_z"
+    #define CNS_TAG_ATTR_VALUE          "value"
+    #define CNS_TAG_ATTR_SX             "start.x"
+    #define CNS_TAG_ATTR_SY             "start.y"
+    #define CNS_TAG_ATTR_SZ             "start.z"
+    #define CNS_TAG_ATTR_FX             "finish.x"
+    #define CNS_TAG_ATTR_FY             "finish.y"
+    #define CNS_TAG_ATTR_FZ             "finish.z"
+    #define CNS_TAG_ATTR_PF             "pathfound"
+        #define CNS_TAG_ATTR_TRUE       "true"
+        #define CNS_TAG_ATTR_FALSE      "false"
+    #define CNS_TAG_ATTR_MAXANGLE       "maxAngle"
+
 
 
 /*
  * End of XML files tag's attributes -------------------------------------------
  */
-
-/*
- * Configuration. SearchParams array -------------------------------------------
- */
-#define CN_SP_ST 0
-
-#define CNS_SP_ST_BFS       "bfs"
-#define CNS_SP_ST_JP_SEARCH "jp_search"
-#define CNS_SP_ST_DIJK      "dijkstra"
-#define CNS_SP_ST_ASTAR     "astar"
-#define CNS_SP_ST_TH        "theta"
-
-#define CN_SP_ST_BFS        0
-#define CN_SP_ST_DIJK       1
-#define CN_SP_ST_ASTAR      2
-#define CN_SP_ST_JP_SEARCH  3
-#define CN_SP_ST_TH         4
-
-
-#define CN_SP_LL 1
-
-#define CN_SP_LL_NOLOG      0
-#define CN_SP_LL_SMALLLOG   1
-#define CN_SP_LL_FULLLOG    2
-#define CN_SP_LL_PARTIALLOG    1.5
-
-#define CN_SP_AS 2 //AllowSqueeze
-
-#define CN_SP_AS_TRUE 1
-#define CN_SP_AS_FALSE 0
-
-#define CN_SP_LC 3 //LineCost
-
-#define CN_SP_DC 4 //DiagonalCost
-
-#define CN_SP_AD 5 //AllowDiagonal
-#define CN_SP_AD_TRUE 1
-#define CN_SP_AD_FALSE 0
-
-#define CN_SP_HW 6 //HWeight
-
-#define CN_SP_MT 7 //MetricType
-
-#define CNS_SP_MT_DIAG "diagonal"
-#define CNS_SP_MT_MANH "manhattan"
-#define CNS_SP_MT_EUCL "euclid"
-#define CNS_SP_MT_CHEB "chebyshev"
-
-#define CN_SP_MT_DIAG 0
-#define CN_SP_MT_MANH 1
-#define CN_SP_MT_EUCL 2
-#define CN_SP_MT_CHEB 3
-
-#define CN_SP_BT 8
-
-#define CNS_SP_BT_GMIN "g-min"
-#define CNS_SP_BT_GMAX "g-max"
-
-#define CN_SP_BT_GMIN 1
-#define CN_SP_BT_GMAX 2
-
-#define CN_SP_SL 9
-#define CN_SP_SL_NOLIMIT -1 //����� ����� ��������� ���� ������ ���� ����� ����!
-
-#define CN_SP_RP 10 //UseResetParent
-
-
-#define CN_LP_LPATH 0
-#define CN_LP_LNAME 1
-/*
- * End Configuration -----------------------------------------------------------
- */
-
-/*
-* Move Cost -------------------------------------------------------------------
-*/
-#define CN_MC_LINE 10
-#define CN_MC_DIAG 14
-/*
-* End of Move Cost ------------------------------------------------------------
-*/
-
-/*
- * Grid Cell -------------------------------------------------------------------
- */
-#define CN_GC_NOOBS 0 //������ ���������
-//#define CN_GC_OBS   1 //����������
-/*
- * End of Grid Cell ------------------------------------------------------------
- */
-
-/*
- * Other -----------------------------------------------------------------------
- */
-#define CNS_OTHER_PATHSELECTION "*"
-#define CNS_OTHER_MATRIXSEPARATOR ' '
-#define CN_OTHER_GVALUEOFNOWAY -1
-/*
- * End of other ----------------------------------------------------------------
- */
 #endif
-
