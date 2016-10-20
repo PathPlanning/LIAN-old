@@ -257,3 +257,15 @@ bool cMap::CellIsObstacle(int i, int j, int h) const {
 bool cMap::CellIsTraversable(int i, int j, int h) const {
     return (h >= Grid[i][j]);
 }
+
+bool cMap::NodeOnGrid(const Node &node) const {
+    return CellOnGrid(node.i, node.j, node.z);
+}
+
+bool cMap::NodeIsTraversable(const Node &node) const {
+    return CellIsTraversable(node.i, node.j, node.z);
+}
+
+bool cMap::NodeIsObstacle(const Node &node) const {
+    return CellIsObstacle(node.i, node.j, node.z);
+}

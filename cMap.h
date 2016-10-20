@@ -4,6 +4,7 @@
 #include<iostream>
 #include"tinyxml.h"
 #include"tinystr.h"
+#include "sNode.h"
 #include "gl_const.h"
 
 class cMap {
@@ -25,13 +26,19 @@ public:
 
     bool CellIsTraversable(int i, int j, int h) const;
 
+    bool NodeIsTraversable(const Node &node) const;
+
     bool CellOnGrid(int i, int j) const;
 
     bool CellOnGrid(int i, int j, int height) const;
 
+    bool NodeOnGrid(const Node &node) const;
+
     bool CellIsObstacle(int i, int j) const;
 
     bool CellIsObstacle(int i, int j, int h) const;
+
+    bool NodeIsObstacle(const Node &node) const;
 
     int getValue(int i, int j) const;
 };

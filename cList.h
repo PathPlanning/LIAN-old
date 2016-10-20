@@ -3,17 +3,17 @@
 
 #include<list>
 #include"sNode.h"
+
 using namespace std;
 
-class cList
-{
+class cList {
 public:
-    list<Node> List;
+    list <Node> List;
 
 public:
-    cList(){}
-    ~cList()
-    {
+    cList() {}
+
+    ~cList() {
         List.clear();
     }
 

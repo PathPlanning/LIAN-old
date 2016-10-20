@@ -169,7 +169,12 @@ def make_path_and_picture(exec_filename, input_filename, log_filename, picture_f
         print("{} processed successfully".format(input_filename))
     else:
         print("Error has occurred during searching path for {}.\
-        Program has finished with exit code {}".format(input_filename, code))
+        Program has finished with exit code {}. Trying to process log file, if it exists.".format(input_filename, code))
+        try:
+            data = parse_log(log_filename)
+            illustrate(data, picture_filename, picture_format, scale)
+        except Exception as e:
+            print("Processing log file {} is failed with error".format(log_filename), e, sep='\n')
 
 
 if __name__ == "__main__":

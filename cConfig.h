@@ -9,17 +9,18 @@
 
 
 // TODO add and use breakingtie
-class cConfig
-{
+class cConfig {
 public:
     float *searchParams;
     int N;
 public:
     cConfig();
+
     cConfig(int numParams, float *paramArray);
+
     ~cConfig();
 
-    bool getConfig(const char* FileName);
+    bool getConfig(const char *FileName);
 };
 
 #endif

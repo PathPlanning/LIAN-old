@@ -7,7 +7,7 @@
 TARGET = LianSearch
 CONFIG   += console
 CONFIG   -= app_bundle
-QMAKE_CXXFLAGS += -std=c++0x
+QMAKE_CXXFLAGS += -std=c++11 -O3
 TEMPLATE = app
 win32 {
 QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++
@@ -23,7 +23,8 @@ SOURCES += main.cpp \
     cLogger.cpp \
     cList.cpp \
     cConfig.cpp \
-    liansearch.cpp
+    liansearch.cpp \
+    Bresenham.cpp
 
 HEADERS += \
     tinyxml.h \
@@ -38,4 +39,5 @@ HEADERS += \
     cLogger.h \
     cList.h \
     cConfig.h \
-    liansearch.h
+    liansearch.h \
+    Bresenham.h

@@ -6,14 +6,14 @@
 #include "cMap.h"
 #include "cSearch.h"
 #include <vector>
-#include <unordered_map>
+#include <unordered_set>
 
 class LianSearch : public cSearch {
 
 public:
 
     // Конструктор с параметрами:
-    LianSearch(float angleLimit, int distance, float weight,
+    LianSearch(double angleLimitDegree, int distance, float weight,
                unsigned int steplimit, float circleRadiusFactor, float curvatureHeuristicWeight,
                float decreaseDistanceFactor, int distanceMin,
                float linecost, bool lesserCircle, int numOfParentsToIncreaseRadius);
@@ -25,14 +25,15 @@ public:
 
 private:
 
-    // Максимальный угол отклонения
-    float angleLimit;
+    // Maximum allowed angle of turn. Stored in radians
+    double angleLimit;
 
     // Минимальная дистанция шага
     int distance;
 
     int numOfParentsToIncreaseRadius;
 
+    //array of radius value. The greatest radius at the beginning
     std::vector<int> listOfDistances;
     int listOfDistancesSize;
 
@@ -64,7 +65,7 @@ private:
     int distanceMin;
 
     // Виртуальные узлы, составляющие окружность
-    std::vector <std::vector<Node>> circleNodes;
+    std::vector<std::vector<Node>> circleNodes;
 
     std::vector<float> angles;
 
@@ -72,14 +73,14 @@ private:
     cList *open, hppath, lppath;
 
     // список Close
-    std::unordered_multimap<int, Node> close;
+    std::unordered_multiset<Node, std::hash<Node>, NodeCoordEqual> close;
 
     void addOpen(Node &newNode);
 
     // метод, вычисляющий окружность по Брезенхему и записывающий
-    // координаты узлов в список circleNodes (центр в точке [0, 0] )
+    // координаты узлов в список circleNodes (центр в точке [0, 0, 0] )
     // радиус - радиус окружности в клетках
-    void calculateCircle(int radius);
+    void calculateCircles();
 
     // метод вычисляет предпочтительный радиус исходя из парамтеров карты
     int calculatePreferableRadius(const cMap &Map);
@@ -89,7 +90,7 @@ private:
     Node findMin(int size);
 
     // метод строит отрезок с помощью алгоритма Брезенхема
-    void calculateLineSegment(std::vector <Node> &line, const Node &start, const Node &goal);
+    void calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal);
 
     // метод строит отрезок с помощью алгоритма Брезенхема
     // и проверяет его на наличие препятствий
@@ -99,7 +100,12 @@ private:
     // пространства в опорных точках
     bool checkLesserCircle(const cMap &Map, const Node &center, const float radius);
 
-    double calculateDistanceFromCellToCell(const Node& from, const Node &to) const;
+    // Checks is angle of turn in a path is correct
+    bool checkTurnAngle(const Node &start, const Node &middlie, const Node &finish) const;
+
+    int findRadiusInDistances(int radius) const;
+
+    double calculateDistanceFromCellToCell(const Node &from, const Node &to) const;
 
     // критерий остановки. Возвращает истину, если цикл поиска
     // следует прекратить. Входящее значение - текущий номер шага алгоритма
@@ -109,9 +115,9 @@ private:
 
     bool tryToDecreaseRadius(Node &curNode, int width);
 
-    void findSuccessors(const Node curNode, std::vector <Node> &successors, const cMap &Map);
+    void findSuccessors(const Node curNode, std::vector<Node> &successors, const cMap &Map);
 
-    bool expand(const Node curNode, const cMap &Map);
+    bool expand(const Node *Node_ptr, const cMap &Map);
 
     void makePrimaryPath(Node curNode);
 

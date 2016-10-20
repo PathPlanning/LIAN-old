@@ -1,10 +1,8 @@
 #include"cLogger.h"
 
-cLogger::cLogger()
-{
-    loglevel=-1;
+cLogger::cLogger() {
+    loglevel = -1;
 }
 
-cLogger::~cLogger()
-{
+cLogger::~cLogger() {
 }
