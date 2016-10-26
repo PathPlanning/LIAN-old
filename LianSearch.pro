@@ -24,7 +24,8 @@ SOURCES += main.cpp \
     cList.cpp \
     cConfig.cpp \
     liansearch.cpp \
-    Bresenham.cpp
+    Bresenham.cpp \
+    Queues.cpp
 
 HEADERS += \
     tinyxml.h \
@@ -40,4 +41,5 @@ HEADERS += \
     cList.h \
     cConfig.h \
     liansearch.h \
-    Bresenham.h
+    Bresenham.h \
+    Queues.h

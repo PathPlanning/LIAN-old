@@ -22,6 +22,7 @@ cConfig::~cConfig() {
     }
 }
 
+// TODO Add breaking tie parsing
 bool cConfig::getConfig(const char *FileName) {
     std::string value;
     float angle;

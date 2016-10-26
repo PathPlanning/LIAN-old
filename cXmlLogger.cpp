@@ -122,7 +122,7 @@ void cXmlLogger::writeToLogMap(const cMap &Map, const cList &path) {
 }
 
 void
-cXmlLogger::writeToLogOpenClose(const cList *open, const std::unordered_multimap<int, Node> &close, const int size) {
+cXmlLogger::writeToLogOpenClose(const cList *open, const std::unordered_multiset<Node> &close, const int size) {
 
     if (loglevel == CN_LOGLVL_NO || loglevel == CN_LOGLVL_HIGH) return;
 
@@ -191,17 +191,17 @@ cXmlLogger::writeToLogOpenClose(const cList *open, const std::unordered_multimap
     lowlevel->InsertEndChild(*element);
     child = lowlevel->LastChild();
 
-    for (std::unordered_map<int, Node>::const_iterator it = close.begin(); it != close.end(); ++it) {
+    for (auto it = close.begin(); it != close.end(); ++it) {
         element = new TiXmlElement(CNS_TAG_NODE);
-        element->SetAttribute(CNS_TAG_ATTR_X, it->second.j);
-        element->SetAttribute(CNS_TAG_ATTR_Y, it->second.i);
-        element->SetAttribute(CNS_TAG_ATTR_Z, it->second.z);
-        element->SetDoubleAttribute(CNS_TAG_ATTR_F, it->second.F);
-        element->SetDoubleAttribute(CNS_TAG_ATTR_G, it->second.g);
-        if (it->second.g > 0) {
-            element->SetAttribute(CNS_TAG_ATTR_PARX, it->second.Parent->j);
-            element->SetAttribute(CNS_TAG_ATTR_PARY, it->second.Parent->i);
-            element->SetAttribute(CNS_TAG_ATTR_PARZ, it->second.Parent->z);
+        element->SetAttribute(CNS_TAG_ATTR_X, it->j);
+        element->SetAttribute(CNS_TAG_ATTR_Y, it->i);
+        element->SetAttribute(CNS_TAG_ATTR_Z, it->z);
+        element->SetDoubleAttribute(CNS_TAG_ATTR_F, it->F);
+        element->SetDoubleAttribute(CNS_TAG_ATTR_G, it->g);
+        if (it->g > 0) {
+            element->SetAttribute(CNS_TAG_ATTR_PARX, it->Parent->j);
+            element->SetAttribute(CNS_TAG_ATTR_PARY, it->Parent->i);
+            element->SetAttribute(CNS_TAG_ATTR_PARZ, it->Parent->z);
         }
         child->InsertEndChild(*element);
     }

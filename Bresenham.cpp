@@ -125,7 +125,7 @@ bool LineOfSight::line_of_sight(const Node &from, const Node &to) {
     return line_of_sight(from.i, from.j, from.z, to.i, to.j, to.z);
 }
 
-Liner::Liner(std::vector<Node> *init_path) : path(init_path) {}
+Liner::Liner(std::list<Node> *init_path) : path(init_path) {}
 
 bool Liner::ProcessPoint(int i, int j, int h) {
     Node newNode;

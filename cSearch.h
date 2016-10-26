@@ -14,7 +14,8 @@ public:
 
     virtual ~cSearch() {};
 
-    virtual void addOpen(Node &newNode) = 0;
+    // Does not need to use it now
+    //virtual void addOpen(Node &newNode) = 0;
 
     virtual SearchResult startSearch(cLogger *Log, const cMap &Map) = 0;
 

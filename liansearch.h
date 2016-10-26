@@ -5,6 +5,8 @@
 #include "cList.h"
 #include "cMap.h"
 #include "cSearch.h"
+#include "Queues.h"
+
 #include <vector>
 #include <unordered_set>
 
@@ -27,6 +29,8 @@ private:
 
     // Maximum allowed angle of turn. Stored in radians
     double angleLimit;
+
+    double cosLimit;
 
     // Минимальная дистанция шага
     int distance;
@@ -58,7 +62,7 @@ private:
     unsigned int stepLimit;
 
     // число вершин в списках open и close
-    unsigned int closeSize, openSize;
+    unsigned int closeSize;
 
     // во сколько раз можно уменьшать изначальную длину шага
     float decreaseDistanceFactor;
@@ -69,13 +73,13 @@ private:
 
     std::vector<float> angles;
 
-    // Спиок Open + итоговый путь
-    cList *open, hppath, lppath;
+    iOpen *open;
+
+    // Итоговый путь
+    cList hppath, lppath;
 
     // список Close
     std::unordered_multiset<Node, std::hash<Node>, NodeCoordEqual> close;
-
-    void addOpen(Node &newNode);
 
     // метод, вычисляющий окружность по Брезенхему и записывающий
     // координаты узлов в список circleNodes (центр в точке [0, 0, 0] )
@@ -86,11 +90,6 @@ private:
     int calculatePreferableRadius(const cMap &Map);
 
     void calculateDistances();
-
-    Node findMin(int size);
-
-    // метод строит отрезок с помощью алгоритма Брезенхема
-    void calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal);
 
     // метод строит отрезок с помощью алгоритма Брезенхема
     // и проверяет его на наличие препятствий
@@ -113,7 +112,8 @@ private:
 
     int tryToIncreaseRadius(Node curNode);
 
-    bool tryToDecreaseRadius(Node &curNode, int width);
+    // Returns the pointer to the new node
+    const Node* tryToDecreaseRadius(const Node *node_ptr, int width);
 
     void findSuccessors(const Node curNode, std::vector<Node> &successors, const cMap &Map);
 
