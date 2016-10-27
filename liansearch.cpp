@@ -230,7 +230,7 @@ double LianSearch::calculateDistanceFromCellToCell(const Node &from, const Node 
     delta_j = abs(to.j - from.j);
     delta_z = abs(to.z - from.z);
 
-    return sqrt(double(delta_i * delta_i) + double(delta_j * delta_j) + double(delta_z * delta_z));
+    return sqrt(delta_i * delta_i + delta_j * delta_j + delta_z * delta_z);
 }
 
 SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
@@ -336,16 +336,16 @@ bool LianSearch::expand(const Node *Node_ptr, const cMap &Map) {
     for (k = 0; k < listOfDistancesSize; k++)
         if (listOfDistances[k] == curNode.radius)
             break;
-    const std::vector<Node> &curCircleNodes = LianSearch::circleNodes[k];
+    const std::vector<Node> &curCircleNodes = circleNodes[k];
     Node successor_node;
     bool successorsIsFine = false, inclose, pathToParent;
-    float cosAngle, angle, curvature;
+    float curvature = 0;
 
     for (size_t pos = 0; pos <= curCircleNodes.size(); ++pos) {
         // On last iteration we check if goal point inside the circle and process it if possible
         if (pos == curCircleNodes.size()) {
             if (calculateDistanceFromCellToCell(curNode, goal) <= curNode.radius) {
-                successor_node = Node(Map.goal_i, Map.goal_j, Map.goal_z);
+                successor_node = goal;
             } else {
                 continue;
             }
@@ -396,8 +396,10 @@ bool LianSearch::expand(const Node *Node_ptr, const cMap &Map) {
         successor_node.g = curNode.g + linecost * calculateDistanceFromCellToCell(curNode, successor_node);
         successor_node.c = curNode.c + curvature;
         successor_node.F =
+                successor_node.g + weight * linecost * calculateDistanceFromCellToCell(successor_node, goal);
+        /*successor_node.F =
                 successor_node.g + weight * linecost * calculateDistanceFromCellToCell(successor_node, goal) +
-                curvatureHeuristicWeight * distance * successor_node.c;
+                curvatureHeuristicWeight * distance * successor_node.c;*/
 
 
         pathToParent = checkLineSegment(Map, curNode, successor_node);

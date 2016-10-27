@@ -35,6 +35,7 @@ bool cMap::getMap(const char *FileName) {
     bool hasGrid = false;
     bool hasMAXALT = false;
     bool hasALTLIM = false;
+    bool hasZCoord = false;
     std::stringstream stream;
     TiXmlDocument doc(FileName);
     if (!doc.LoadFile()) {
@@ -114,7 +115,7 @@ bool cMap::getMap(const char *FileName) {
                 std::cout << "Only first value of '" << CNS_TAG_ALTLIM << "will be used." << std::endl;
             } else {
                 hasALTLIM = true;
-                if (!((element->Attribute(CNS_TAG_ALTLIM_ATTR_MIN, &min_altitude_limit)) && (min_altitude_limit > 0))) {
+                if (!((element->Attribute(CNS_TAG_ALTLIM_ATTR_MIN, &min_altitude_limit)) && (min_altitude_limit >= 0))) {
                     std::cout << "Warning! Invalid value of '" << CNS_TAG_ALTLIM_ATTR_MIN << "' attribute of '"
                               << CNS_TAG_ALTLIM << "' tag encountered (or could not convert to integer)." << std::endl;
                     std::cout << "Value of '" << CNS_TAG_ALTLIM_ATTR_MIN << "' tag should be an integer AND >=0"
@@ -157,6 +158,8 @@ bool cMap::getMap(const char *FileName) {
                           << std::endl;
                 std::cout << "Continue reading XML and hope correct value of '" << CNS_TAG_SZ
                           << "' tag will be encountered later..." << std::endl;
+            } else {
+                hasZCoord = true;
             }
         } else if (value == CNS_TAG_FX) {
             stream >> goal_j;
@@ -180,6 +183,8 @@ bool cMap::getMap(const char *FileName) {
                           << std::endl;
                 std::cout << "Continue reading XML and hope correct value of '" << CNS_TAG_FZ
                           << "' tag will be encountered later..." << std::endl;
+            } else {
+                hasZCoord = true;
             }
         } else if (value == CNS_TAG_GRID) {
             if (height == -1 || width == -1) {
@@ -204,7 +209,7 @@ bool cMap::getMap(const char *FileName) {
                 j = 0;
                 for (; j < width && (stream >> cell_value); ++j) {
                     Grid[i][j] = cell_value;
-                    if (hasMAXALT || hasALTLIM) {
+                    if (hasMAXALT || hasALTLIM || hasZCoord) {
                         altitude_max = std::max(altitude_max, cell_value);
                     }
                 }
@@ -225,6 +230,59 @@ bool cMap::getMap(const char *FileName) {
         stream.clear();
         stream.str("");
         node = map->IterateChildren(node);
+    }
+
+    bool correct_data = true;
+    if (hasZCoord && !hasALTLIM) {
+        min_altitude_limit = std::min(start_z, goal_z);
+        max_altitude_limit = std::max(std::max(start_z, goal_z), altitude_max);
+    }
+
+    if (start_i == -1 || start_j == -1) {
+        std::cout << "Error: Couldn't find correct start point. Please, enter correct '" << CNS_TAG_SX << "' and '" <<
+                  CNS_TAG_SY << "' tags.\n";
+        correct_data = false;
+    }
+
+    if (Grid[start_i][start_j] > start_z) {
+        std::cout << "Error: Start point is an obstacle.\n";
+        correct_data = false;
+    }
+
+    if (start_z < min_altitude_limit) {
+        std::cout << "Error: Start point is lower than minimum allowed altitude\n";
+        correct_data = false;
+    }
+
+    if (start_z > max_altitude_limit) {
+        std::cout << "Error: Start point is higher than maximum allowed altitude\n";
+        correct_data = false;
+    }
+
+    if (goal_i == -1 || goal_j == -1) {
+        std::cout << "Error: Couldn't find correct finish point. Please, enter correct '" << CNS_TAG_FX << "' and '" <<
+                  CNS_TAG_FY << "' tags.\n";
+        correct_data = false;
+    }
+
+    if (Grid[goal_i][goal_j] > goal_z) {
+        std::cout << "Error: Finish point is an obstacle.\n";
+        correct_data = false;
+    }
+
+    if (goal_z < min_altitude_limit) {
+        std::cout << "Error: finish point is lower than minimum allowed altitude\n";
+        correct_data = false;
+    }
+
+    if (goal_z > max_altitude_limit) {
+        std::cout << "Error: Finish point is higher than maximum allowed altitude\n";
+        correct_data = false;
+    }
+
+    if (!correct_data) {
+        std::cout << "Can not continue search. Please fix the errors above and try again.\n";
+        return false;
     }
 
     return true;

@@ -144,6 +144,14 @@ def illustrate(parsed_data, output_filename, output_format="PNG", scale=2):
     im.save(output_filename, output_format)
 
 
+def parse_and_illustrate(log_filename, picture_filename=None, output_format="PNG", scale=2):
+    data = parse_log(log_filename)
+    if picture_filename is None:
+        m = re.match(r'(?P<name>.+)_log\.xml', log_filename)
+        picture_filename = path.join(path.dirname(log_filename), m.group('name') + ".plain.png")
+    illustrate(data, picture_filename, output_format, scale)
+
+
 def get_log_output_filename(task_filename):
     tree = ET.parse(task_filename)
     root = tree.getroot()
@@ -151,7 +159,7 @@ def get_log_output_filename(task_filename):
     path = logpath.text
     if path is not None:
         return path
-    m = re.match(r'(?P<name>.+)\.xml', task_filename)
+    m = re.match(r'(?P<name>.+)(?<!_log)\.xml', task_filename)
     return m.group('name') + "_log.xml"
 
 
@@ -184,6 +192,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", required=True, help="Путь к исполняемому файлу проекта")
     parser.add_argument("--test", required=True, help="Путь к папке с заданиями в формате XML или единичному файлу")
+    parser.add_argument("--logs", required=False, help="Путь к папке с результатами поиска в формате XML или единичному файлу")
     parser.add_argument("--scale", required=False, type=int,
                         help="Масштаб карты, относительно заданного в файле", default=2)
     parser.add_argument("--no_image", required=False, help="Не генерировать изображения к результату", type=bool)
@@ -202,10 +211,24 @@ if __name__ == "__main__":
         print("Incorrect path to the test")
         exit(1)
 
+    logs = None
+    if args.logs:
+        logs_path = path.abspath(args.logs)
+        if path.isdir(logs_path):
+            logs = []
+            for log_name in listdir(logs_path):
+                logs.append(path.join(logs_path, log_name))
+        elif path.isfile(logs_path):
+            logs = [logs_path]
+        else:
+            print("Incorrect path to the logs")
+            exit(1)
+
     tasks = {}
+    task_pattern = re.compile(r'(?P<name>.+)(?<!_log)\.xml')
     for filename in files:
-        m = re.match(r'(?P<name>.+)(?<!_log)\.xml', filename)
-        if m:
+        m = task_pattern.match(filename)
+        if m or len(files) == 1:
             tasks[path.join(dir_path, filename)] = (get_log_output_filename(path.join(dir_path, filename)),
                                                     path.join(dir_path, m.group('name') + '.plain.png'))
 
@@ -213,6 +236,11 @@ if __name__ == "__main__":
         for inp_path, val in tasks.items():
             if args.no_image:
                 pool.apply_async(make_path, [exec_path, inp_path])
+            elif logs is not None:
+                logs_pattern = re.compile(r'(?P<name>.+)_log\.xml')
+                for cand in logs:
+                    if logs_pattern.match(cand) or len(logs) == 1:
+                        pool.apply_async(parse_and_illustrate, [cand])
             else:
                 pool.apply_async(make_path_and_picture, [exec_path, inp_path, val[0], val[1], args.scale])
         pool.close()
