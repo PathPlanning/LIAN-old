@@ -69,7 +69,7 @@ private:
     int distanceMin;
 
     // Виртуальные узлы, составляющие окружность
-    std::vector<std::vector<Node>> circleNodes;
+    std::vector<std::unordered_set<Node, std::hash<Node>, NodeCoordEqual>> circleNodes;
 
     std::vector<float> angles;
 
@@ -124,6 +124,10 @@ private:
     void makeSecondaryPath(Node curNode);
 
     double makeAngles(Node curNode);
+
+    // Checks successor and put it in open if necessary
+    bool ProcessSuccessor(const Node *Node_ptr, Node successor, const cMap &Map);
+    bool ProcessSuccessor(const Node *Node_ptr, const Node& successor, const cMap &Map, const Node& direct_succ, int max_shift);
 };
 
 #endif // LIANSEARCH_H

@@ -33,29 +33,29 @@ bool SortedList::Insert(const Node &newNode) {
     }
 
     for (iter = data[newNode.i].begin(); iter != data[newNode.i].end(); ++iter) {
-        if (!less(*iter, newNode) && (!posFound)) {
+        if (!posFound && !less(*iter, newNode)) {
             pos = iter;
             posFound = true;
         }
 
-        if (iter->i == newNode.i && iter->j == newNode.j && iter->z == newNode.z)
-            if ((iter->Parent->i == newNode.Parent->i) && (iter->Parent->j == newNode.Parent->j) &&
-                (iter->Parent->z == newNode.Parent->z)) {
-                if (newNode.F >= iter->F) {
-                    return false;
-                } else {
-                    if (pos == iter) {
-                        iter->g = newNode.g;
-                        iter->F = newNode.F;
-                        iter->c = newNode.c;
-                        iter->radius = newNode.radius;
-                        return true;
-                    }
-                    data[newNode.i].erase(iter);
-                    --size_;
-                    break;
+        if (iter->j == newNode.j && iter->z == newNode.z && (iter->Parent->i == newNode.Parent->i) &&
+            (iter->Parent->j == newNode.Parent->j) &&
+            (iter->Parent->z == newNode.Parent->z)) {
+            if (newNode.F >= iter->F) {
+                return false;
+            } else {
+                if (pos == iter) {
+                    iter->g = newNode.g;
+                    iter->F = newNode.F;
+                    iter->c = newNode.c;
+                    iter->radius = newNode.radius;
+                    return true;
                 }
+                data[newNode.i].erase(iter);
+                --size_;
+                break;
             }
+        }
     }
     ++size_;
     data[newNode.i].insert(pos, newNode);
@@ -204,7 +204,7 @@ bool MinHeap::empty() const {
     return _vector.empty();
 }
 
-template <typename T>
+template<typename T>
 void MinHeap::ReplaceData(T begin, T end) {
     _vector = std::vector<Node>(begin, end);
     Heapify();
@@ -247,4 +247,86 @@ void ClusteredHeap::DeleteMin() {
     data[min_pos].DeleteMin();
     --size_;
     min_pos = data.size();
+}
+
+ClusteredSets::ClusteredSets(size_t size) : loc_mins(size), data(size), size_(0), min_pos(size) {}
+
+size_t ClusteredSets::size() const {
+    return size_;
+}
+
+bool ClusteredSets::empty() const {
+    return (size_ == 0);
+}
+
+bool ClusteredSets::Insert(const Node &NewNode) {
+    auto range = data[NewNode.i].equal_range(NewNode);
+    bool node_found = false;
+    bool updated = false;
+
+    NodeCoordEqual equal;
+    for (auto it = range.first; it != range.second; ++it) {
+        if (equal(NewNode, *it)) {
+            if ((NewNode.Parent == nullptr && it->Parent == nullptr ) || equal(*NewNode.Parent, *it->Parent)) {
+                node_found = true;
+                if (NewNode.F < it->F) {
+                    updated = true;
+                    data[NewNode.i].erase(it);
+                    data[NewNode.i].insert(NewNode);
+                }
+                break;
+            }
+        }
+    }
+    if (!node_found) {
+        updated = true;
+        data[NewNode.i].insert(NewNode);
+        ++size_;
+    }
+    if (data[NewNode.i].size() == 1 || less(NewNode, loc_mins[NewNode.i])) {
+        loc_mins[NewNode.i] = NewNode;
+    }
+    return updated;
+}
+
+Node ClusteredSets::FindMin() const {
+    for (min_pos = 0; data[min_pos].empty(); ++min_pos) {}
+    for (size_t i = min_pos + 1; i < loc_mins.size(); ++i) {
+        if (!data[i].empty() && less(loc_mins[i], loc_mins[min_pos])) {
+            min_pos = i;
+        }
+    }
+    return loc_mins[min_pos];
+}
+
+void ClusteredSets::DeleteMin() {
+    if (min_pos == loc_mins.size()) {
+        FindMin();
+    }
+
+    NodeCoordEqual equal;
+    Node min = loc_mins[min_pos];
+    auto range = data[min_pos].equal_range(min);
+    for (auto it = range.first; it != range.second; ++it) {
+        if (equal(min, *it)) {
+            if ((min.Parent == nullptr && it->Parent == nullptr ) || equal(*min.Parent, *it->Parent)) {
+                data[min_pos].erase(it);
+                --size_;
+                break;
+            }
+        }
+    }
+
+    if (!data[min_pos].empty()) {
+        auto it = data[min_pos].begin();
+        min = *(it++);
+        for (; it != data[min_pos].end(); ++it) {
+            if (less(*it, min)) {
+                min = *it;
+            }
+        }
+
+        loc_mins[min_pos] = min;
+    }
+    min_pos = loc_mins.size();
 }

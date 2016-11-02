@@ -142,6 +142,7 @@ if __name__ == "__main__":
     map_filename = path.abspath(map_filename)
     data = parse_map(map_filename)
     number_of_taskes = int(input("Enter number of tasks to generate:    "))
+    clusters_number = int(input('Enter number of test groups to create:    '))
 
     taskes = []
 
@@ -151,8 +152,8 @@ if __name__ == "__main__":
     while len(taskes) < number_of_taskes:
         output_filename = '/tmp/test.xml'
         open(output_filename, 'w').close()
-        task_s = [randint(0, data['width']), randint(0, data['height']), 0]
-        task_f = [randint(0, data['width']), randint(0, data['height']), 0]
+        task_s = [randint(0, data['width'] - 1), randint(0, data['height'] - 1), 0]
+        task_f = [randint(0, data['width'] - 1), randint(0, data['height'] - 1), 0]
         task_s[2] = data['map'][task_s[1]][task_s[0]]
         task_f[2] = data['map'][task_f[1]][task_f[0]]
         task = {
@@ -174,7 +175,6 @@ if __name__ == "__main__":
         except Exception as e:
             print(e)
 
-    clusters_number = int(input('Enter number of test groups to create:    '))
     edges = []
     for i in range(len(taskes)):
         for j in range(i + 1, len(taskes)):
