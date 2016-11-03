@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
 
         Mission.saveSearchResultsToLog();
         std::cout << "Results are saved (if chosen) via created log channel." << std::endl;
+        return 0;
     }
 
     return 1;

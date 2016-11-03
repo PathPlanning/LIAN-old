@@ -21,6 +21,7 @@ LianSearch::LianSearch(double angleLimitDegree, int distance, float weight,
     this->angleLimit = (angleLimitDegree / 180) * M_PI;
     //this->angleLimit = angleLimitDegree;
     this->cosLimit = cos(angleLimit);
+    this->sinLimit = sin(angleLimit);
     this->distance = distance;
     this->weight = weight;
     this->stepLimit = steplimit;
@@ -203,7 +204,7 @@ void LianSearch::calculateDistances() {
     listOfDistancesSize = listOfDistances.size();
 }
 
-bool LianSearch::checkLineSegment(const cMap &map, const Node &start, const Node &goal) {
+bool LianSearch::checkLineSegment(const cMap &map, const Node &start, const Node &goal) const {
     LineOfSight checker(map);
     return checker.line_of_sight(start, goal);
 }
@@ -282,8 +283,10 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
     /*if (Log->loglevel >= CN_LOGLVL_LOW)
         Log->writeToLogOpenClose(open, close, Map.height);*/
     if (pathFound) {
-        float maxAngle = makeAngles(curNode);
-        makePrimaryPath(curNode);
+        makePrimaryPath(curNode, Map);
+
+        // Uses hppath to calculate angles
+        sresult.maxAngle = makeAngles();
 
         finish_time = std::chrono::high_resolution_clock::now();
 
@@ -293,7 +296,6 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
         sresult.hppath = hppath;
         sresult.lppath = lppath;
         sresult.angles = angles;
-        sresult.maxAngle = maxAngle;
         sresult.sections = hppath.List.size() - 1;
     } else {
         sresult.pathfound = false;
@@ -358,8 +360,8 @@ bool LianSearch::expand(const Node *Node_ptr, const cMap &Map) {
         }
         // Calculating borders for searching successors
         if (found_direct_succ) {
-            double sub_radius = sin(angleLimit);
-            sub_radius = std::max(sub_radius, (double) 1 - cos(angleLimit));
+            double sub_radius = sinLimit;
+            sub_radius = std::max(sub_radius, (double) 1 - cosLimit);
             direct_shift_limit = ceil(sub_radius * Node_ptr->radius);
 
             direct_succ.i += Node_ptr->i;
@@ -381,7 +383,7 @@ bool LianSearch::expand(const Node *Node_ptr, const cMap &Map) {
         }
     }
 
-    if (calculateDistanceFromCellToCell(*Node_ptr, Node(Map.goal_i, Map.goal_j, Map.goal_z)) <= Node_ptr-> radius) {
+    if (calculateDistanceFromCellToCell(*Node_ptr, Node(Map.goal_i, Map.goal_j, Map.goal_z)) <= Node_ptr->radius) {
         successorsIsFine |= ProcessSuccessor(Node_ptr, Node(Map.goal_i, Map.goal_j, Map.goal_z), Map);
     }
 
@@ -444,19 +446,26 @@ const Node *LianSearch::tryToDecreaseRadius(const Node *node_ptr, int width) {
     return node_ptr;
 }
 
-void LianSearch::makePrimaryPath(Node curNode) {
-    std::vector<float> compressed_angles;
-    hppath.List.push_front(curNode);
-    curNode = *curNode.Parent;
-    for (size_t k = 0; curNode.Parent != nullptr; ++k) {
-        if (angles[k] != 0.0) {
-            hppath.List.push_front(curNode);
-            compressed_angles.push_back(angles[k]);
-        }
+void LianSearch::ResetParent(Node &node, const cMap &map) const {
+    while (node.Parent != nullptr && node.Parent->Parent != nullptr && (node.Parent->Parent->Parent == nullptr ||
+                                                                        checkTurnAngle(*node.Parent->Parent->Parent,
+                                                                                       *node.Parent->Parent, node)) &&
+           checkLineSegment(map, *node.Parent->Parent, node)) {
+        node.Parent = node.Parent->Parent;
+    }
+}
+
+void LianSearch::makePrimaryPath(Node curNode, const cMap &map) {
+    angles.resize(0);
+    double pathLenth = 0;
+    while (curNode.Parent != nullptr) {
+        ResetParent(curNode, map);
+        hppath.List.push_front(curNode);
+        pathLenth += linecost * calculateDistanceFromCellToCell(*curNode.Parent, curNode);
         curNode = *curNode.Parent;
     }
     hppath.List.push_front(curNode);
-    angles = std::move(compressed_angles);
+    sresult.pathlength = pathLenth;
 }
 
 void LianSearch::makeSecondaryPath(Node curNode) {
@@ -496,6 +505,40 @@ double LianSearch::makeAngles(Node curNode) {
             angles.push_back(angle);
         }
         curNode = *curNode.Parent;
+    }
+
+    angles.shrink_to_fit();
+    return maxAngle;
+}
+
+double LianSearch::makeAngles() {
+    angles.resize(0);
+    double angle;
+    double dis1;
+    double dis2;
+    double scalarProduct;
+    double cosAngle;
+    double maxAngle = 0;
+    std::list<Node>::const_reverse_iterator sectionStart, sectionMiddle, sectionFinish;
+    sectionStart = sectionMiddle = sectionFinish = hppath.List.rbegin();
+    ++++sectionStart;
+    ++sectionMiddle;
+    for (; sectionStart != hppath.List.rend(); ++sectionStart, ++sectionFinish, ++sectionMiddle) {
+        dis1 = calculateDistanceFromCellToCell(*sectionStart, *sectionMiddle);
+        dis2 = calculateDistanceFromCellToCell(*sectionMiddle, *sectionFinish);
+
+        if (dis1 != 0 && dis2 != 0) {
+            scalarProduct = (sectionFinish->i - sectionMiddle->i) * (sectionMiddle->i - sectionStart->i) +
+                            (sectionFinish->j - sectionMiddle->j) * (sectionMiddle->j - sectionStart->j) +
+                            (sectionFinish->z - sectionMiddle->z) * (sectionMiddle->z - sectionStart->z);
+
+            cosAngle = (scalarProduct / dis1) / dis2;
+            cosAngle = std::min(cosAngle, 1.0);
+            cosAngle = std::max(-1.0, cosAngle);
+            angle = acos(cosAngle) * M_1_PI * 180;
+            maxAngle = std::max(maxAngle, fabs(angle));
+            angles.push_back(angle);
+        }
     }
 
     angles.shrink_to_fit();
@@ -577,7 +620,8 @@ bool LianSearch::ProcessSuccessor(const Node *Node_ptr, Node successor, const cM
 
 bool LianSearch::ProcessSuccessor(const Node *Node_ptr, const Node &successor, const cMap &Map, const Node &direct_succ,
                                   int max_shift) {
-    if (std::max(std::max(abs(successor.i - direct_succ.i), abs(successor.j - direct_succ.j)), abs(successor.z - direct_succ.z)) >
+    if (std::max(std::max(abs(successor.i - direct_succ.i), abs(successor.j - direct_succ.j)),
+                 abs(successor.z - direct_succ.z)) >
         max_shift) {
         return false;
     }

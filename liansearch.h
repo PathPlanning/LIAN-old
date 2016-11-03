@@ -31,6 +31,7 @@ private:
     double angleLimit;
 
     double cosLimit;
+    double sinLimit;
 
     // Минимальная дистанция шага
     int distance;
@@ -93,7 +94,7 @@ private:
 
     // метод строит отрезок с помощью алгоритма Брезенхема
     // и проверяет его на наличие препятствий
-    bool checkLineSegment(const cMap &Map, const Node &start, const Node &goal);
+    bool checkLineSegment(const cMap &Map, const Node &start, const Node &goal) const;
 
     // метод, вычисляющий "малую" окружность по брезенхему, для проверки свободного
     // пространства в опорных точках
@@ -119,15 +120,19 @@ private:
 
     bool expand(const Node *Node_ptr, const cMap &Map);
 
-    void makePrimaryPath(Node curNode);
+    void makePrimaryPath(Node curNode, const cMap &map);
 
     void makeSecondaryPath(Node curNode);
 
     double makeAngles(Node curNode);
+    // Calculate angles using hppath
+    double makeAngles();
 
     // Checks successor and put it in open if necessary
     bool ProcessSuccessor(const Node *Node_ptr, Node successor, const cMap &Map);
     bool ProcessSuccessor(const Node *Node_ptr, const Node& successor, const cMap &Map, const Node& direct_succ, int max_shift);
+
+    void ResetParent(Node &node, const cMap &map) const;
 };
 
 #endif // LIANSEARCH_H

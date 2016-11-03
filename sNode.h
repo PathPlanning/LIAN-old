@@ -66,9 +66,46 @@ namespace std {
     };
 }
 
+struct NodeHashWParent{
+    size_t operator()(const Node& node) const {
+        size_t seed = 0;
+        seed ^= std::hash<int>()(node.i) + 0x9e3779b9
+                + (seed << 6) + (seed >> 2);
+        seed ^= std::hash<int>()(node.j) + 0x9e3779b9
+                + (seed << 6) + (seed >> 2);
+        seed ^= std::hash<int>()(node.z) + 0x9e3779b9
+                + (seed << 6) + (seed >> 2);
+        if (node.Parent != nullptr) {
+            seed ^= std::hash<int>()(node.Parent->i) + 0x9e3779b9
+                    + (seed << 6) + (seed >> 2);
+            seed ^= std::hash<int>()(node.Parent->j) + 0x9e3779b9
+                    + (seed << 6) + (seed >> 2);
+            seed ^= std::hash<int>()(node.Parent->z) + 0x9e3779b9
+                    + (seed << 6) + (seed >> 2);
+        }
+
+        return seed;
+    }
+};
+
 struct NodeCoordEqual{
     bool operator()(const Node& lhs, const Node& rhs) const {
         return (lhs.i == rhs.i) && (lhs.j == rhs.j) && (lhs.z == rhs.z);
+    }
+};
+
+struct NodeCoordWParentEqual{
+    bool operator()(const Node& lhs, const Node& rhs) const {
+        NodeCoordEqual coordEqual;
+        if (coordEqual(lhs, rhs)) {
+            if (lhs.Parent == nullptr && rhs.Parent == nullptr) {
+                return true;
+            }
+            if (lhs.Parent != nullptr && rhs.Parent != nullptr) {
+                return coordEqual(*lhs.Parent, *rhs.Parent);
+            }
+        }
+        return false;
     }
 };
 
