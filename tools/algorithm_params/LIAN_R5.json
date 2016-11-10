@@ -1,0 +1,17 @@
+{
+  "description" : "LIAN search algorithm with fixed radius 5.",
+  "algorithm" : [
+    ["searchtype", "lian"],
+    ["linecost", "1.0"],
+    ["weight", "2"],
+    ["anglelimit", "25"],
+    ["distance", "5"],
+    ["distanceMin", "5"],
+    ["decreaseDistanceFactor", "2"],
+    ["numOfParentsToIncreaseRadius", "2"],
+    ["curvatureHeuristicWeight", "0"],
+    ["circleRadiusFactor", "0"],
+    ["checkLesserCircle", "0"],
+    ["steplimit", "-1"]
+  ]
+}

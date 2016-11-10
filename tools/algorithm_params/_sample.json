@@ -1,0 +1,12 @@
+{
+  "description" : "Algorithm parameters, which used to cluster random tests.",
+  "algorithm" : [
+    ["searchtype", "astar"],
+    ["hweight", "1"],
+    ["metrictype", "euclid"],
+    ["breakingties", "g-max"],
+    ["linecost", "1"],
+    ["allowdiagonal", "1"],
+    ["allowsqueeze", "0"]
+  ]
+}

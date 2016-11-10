@@ -9,7 +9,6 @@ import re
 from PIL import Image, ImageDraw, ImageFont
 
 SETTINGS = {
-    'max_treads': 5,
     'EMPTY_COLOR': (255, 255, 255),
     'PATH_COLOR': (0, 0, 255),
     'OBSTACLE_COLOR': (0, 0, 0),
@@ -187,7 +186,7 @@ def make_path_and_picture(exec_filename, input_filename, log_filename, picture_f
 
 if __name__ == "__main__":
     import argparse
-    from os import listdir, cpu_count, path
+    from os import listdir, cpu_count, path, walk
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", required=True, help="Путь к исполняемому файлу проекта")
@@ -196,16 +195,29 @@ if __name__ == "__main__":
     parser.add_argument("--scale", required=False, type=int,
                         help="Масштаб карты, относительно заданного в файле", default=2)
     parser.add_argument("--no_image", required=False, help="Не генерировать изображения к результату", type=bool)
+    parser.add_argument('-r', required=False, help="Рекурсивно искать задания", type=bool, default=False)
+    parser.add_argument('-t', required=False, help="Количество потоков выполнения заданий", type=int, default=4)
     args = parser.parse_args()
     exec_path = path.abspath(args.exe)
     if not path.isfile(exec_path):
         print("Incorrect path to the executable")
         exit(1)
+
+    task_pattern = re.compile(r'.*/?(?P<name>[^/]+)(?<!_log)\.xml')
     dir_path = path.abspath(args.test)
     if path.isdir(dir_path):
-        files = listdir(dir_path)
+        task_files = []
+        if args.r:
+            for root, dirs, files in walk(dir_path):
+                for file in files:
+                    if task_pattern.match(file):
+                        task_files.append(path.abspath(path.join(root, file)))
+        else:
+            for file in listdir(dir_path):
+                if task_pattern.match(file):
+                    task_files.append(path.abspath(path.join(dir_path, file)))
     elif path.isfile(dir_path):
-        files = [dir_path]
+        task_files = [path.abspath(dir_path)]
         dir_path = path.dirname(dir_path)
     else:
         print("Incorrect path to the test")
@@ -225,14 +237,13 @@ if __name__ == "__main__":
             exit(1)
 
     tasks = {}
-    task_pattern = re.compile(r'(?P<name>.+)(?<!_log)\.xml')
-    for filename in files:
+    for filename in task_files:
         m = task_pattern.match(filename)
-        if m or len(files) == 1:
-            tasks[path.join(dir_path, filename)] = (get_log_output_filename(path.join(dir_path, filename)),
-                                                    path.join(dir_path, m.group('name') + '.plain.png'))
+        if m or len(task_files) == 1:
+            tasks[filename] = (get_log_output_filename(filename),
+                                                    path.join(path.dirname(filename), m.group('name') + '.plain.png'))
 
-    with multiprocessing.Pool(min(SETTINGS['max_treads'], cpu_count())) as pool:
+    with multiprocessing.Pool(min(args.t, cpu_count())) as pool:
         for inp_path, val in tasks.items():
             if args.no_image:
                 pool.apply_async(make_path, [exec_path, inp_path])

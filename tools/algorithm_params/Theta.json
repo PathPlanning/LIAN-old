@@ -1,0 +1,11 @@
+{
+  "description" : "Basic Theta* options.",
+  "algorithm" : [
+    ["searchtype", "theta"],
+    ["hweight", "2"],
+    ["metrictype", "euclid"],
+    ["breakingties", "g-max"],
+    ["linecost", "1"],
+    ["allowdiagonal", "1"],
+    ["allowsqueeze", "0"]
+  ]}

@@ -1,12 +1,17 @@
-from random import randint
+from random import randint, randrange
 import re
-from shutil import rmtree
+from shutil import rmtree, copyfile
 import xml.etree.ElementTree as ET
-from os import path, mkdir, remove, listdir
+from os import path, mkdir, remove, listdir, chdir
+from json import loads, load
 from subprocess import Popen, PIPE, STDOUT, TimeoutExpired
 from collections import defaultdict
+from time import time
 
 from jenks import jenks  # library with jenks natural breaks from https://github.com/perrygeo/jenks
+
+
+EASIEST_TASK = 1000
 
 
 class DSU:
@@ -51,7 +56,6 @@ class DSU:
                 used.add(self.find(i))
                 yield res
 
-
 def parse_map(filename):
     parse_result = {}
 
@@ -85,7 +89,7 @@ def parse_map(filename):
     return parse_result
 
 
-def make_map(source_map_filename, output_filename, task):
+def make_map(source_map_filename, output_filename, task, algorithm_params_json=None):
     tree = ET.parse(source_map_filename)
     root = tree.getroot()
     map = root.find('map')
@@ -138,97 +142,181 @@ def make_map(source_map_filename, output_filename, task):
         finishz.text = str(task['finish'][2])
         map.append(finishz)
 
+    if algorithm_params_json is not None:
+        f = open(algorithm_params_json)
+        params = load(f)
+        f.close()
+        try:
+            algo = root.find('algorithm')
+            algo.clear()
+        except AttributeError:
+            algo = ET.Element('algorithm')
+            root.append(algo)
+        for elem in params['algorithm']:
+            tag = ET.SubElement(algo, elem[0])
+            tag.text = elem[1]
+
     tree.write(output_filename)
 
 
-def get_astar_nodes(Astar_exe_path, map_path, task, timeout=5, verbose=False):
+def generate_test_for_map(map_path, number_tests, exe_path, sample_params=None, shared_list=None):
+    res = []
+    try:
+        data = parse_map(map_path)
+        j = map_path.rfind('/')
+        map_name = map_path[j + 1:]
+    except Exception:
+        return
+    while len(res) < number_tests:
+        task_s = [randrange(0, data['width']), randrange(0, data['height']), 0]
+        task_f = [randrange(0, data['width']), randrange(0, data['height']), 0]
+
+        if data['max_alt'] is not None:
+            task_s[2] = randint(data['map'][task_s[1]][task_s[0]], data['max_alt'])
+            task_f[2] = randint(data['map'][task_f[1]][task_f[0]], data['max_alt'])
+        else:
+            task_s[2] = data['map'][task_s[1]][task_s[0]]
+            task_f[2] = data['map'][task_f[1]][task_f[0]]
+        if data['min_alt'] is not None:
+            task_s[2] = max(task_s[2], data['min_alt'])
+            task_f[2] = max(task_f[2], data['min_alt'])
+
+        task = {
+            'start': tuple(task_s),
+            'finish': tuple(task_f),
+            'map': map_name,
+            'nodes': 0,
+            'time': 0,
+            'found': False
+        }
+        if sample_params is None:
+            get_astar_summary(exe_path, map_path, task)
+        else:
+            get_astar_summary(exe_path, map_path, task, sample_json=sample_params)
+        if task['found'] and task['nodes'] >= EASIEST_TASK:
+            res.append(task)
+
+    if shared_list is not None:
+        shared_list.extend(res)
+    else:
+        return res
+
+
+# tries to execute Astar binary. If successfully, write extra data to the task
+def get_astar_summary(Astar_exe_path, map_path, task, timeout=5, verbose=False, sample_json=None):
     test_map = "/tmp/1.xml"
     while path.isfile(test_map):
         test_map = "/tmp/" + str(randint(1, 100000)) + ".xml"
 
-    make_map(map_path, test_map, task)
+    make_map(map_path, test_map, task, sample_json)
     try:
         proc = Popen([Astar_exe_path, test_map], stdin=PIPE, stdout=PIPE,
                      stderr=STDOUT)
         out, _ = proc.communicate(timeout=timeout)
         # print(out.decode())
-        nodes = nodes_pattern.search(out.decode()).group('nodes')
-        remove(test_map)
-        return int(nodes)
+        task['nodes'] = int(nodes_pattern.search(out.decode()).group('nodes'))
+        task['time'] = float(time_pattern.search(out.decode()).group('time'))
+        task['found'] = (out.decode().lower().find('path found') != -1)
+        return True
     except TimeoutExpired as e:
         proc.kill()
         if verbose:
             print(e)
-    return None
+    except Exception:
+        pass
+    remove(test_map)
+    return False
+
+nodes_pattern = re.compile(r'nodescreated=(?P<nodes>\d+)')
+time_pattern = re.compile(r'time=(?P<time>\d+\.\d*)')
+main_name_pattern = re.compile(r'.*/?(?P<name>[^/]*)\.xml')
+group_title = re.compile(r'group (?P<number>\d+):?\s*', re.IGNORECASE)
 
 
 if __name__ == "__main__":
     import argparse
+    from multiprocessing import Pool, Manager
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", required=True, help="Путь к исполняемому файлу A*")
     parser.add_argument("--test", required=True, help="Путь к папке с картой в формате XML или единичному файлу")
-    parser.add_argument("-n", required=False, help="Количество тестов на одной карте", type=int, default=30)
-    parser.add_argument("-k", required=True, type=int, help="Количество групп тестов")
+    parser.add_argument("-n", required=True, help="Количество тестов на одной карте", type=int)
+    parser.add_argument("-k", required=False, type=int, help="Количество групп тестов", default=1)
     parser.add_argument("--output", required=False, help="Путь для вывода результата", default="tests/")
+    parser.add_argument("--write_maps", required=False, help="Генерировать карты заданий", default=False, type=bool)
+    parser.add_argument("--log", required=False, help="Взять результаты теста из указанного файла")
     args = parser.parse_args()
     exec_path = path.abspath(args.exe)
     if not path.isfile(exec_path):
         print("Incorrect path to the executable")
         exit(1)
-    dir_path = path.abspath(args.test)
-    if path.isdir(dir_path):
-        files = listdir(dir_path)
-    elif path.isfile(dir_path):
-        files = [dir_path]
-        dir_path = path.dirname(dir_path)
+    map_dir = path.abspath(args.test)
+    if path.isdir(map_dir):
+        files = listdir(map_dir)
+    elif path.isfile(map_dir):
+        j = map_dir.rfind('/')
+        files = [map_dir]
+        map_dir = path.dirname(map_dir)
+        files[0] = files[0][j + 1:]
     else:
         print("Incorrect path to the test")
         exit(1)
 
+    # Getting params of algorithms if possible
+    if 'algorithm_params' in listdir(path.dirname(__file__)):
+        json_pattern = re.compile(r'(?P<filename>.*)\.json')
+        params = {}
+        for file in listdir(path.join(path.dirname(__file__), 'algorithm_params')):
+            if json_pattern.match(file):
+                params[json_pattern.match(file).group('filename')] = path.abspath(path.join(
+                    path.join(path.dirname(__file__), 'algorithm_params'), file))
+        if '_sample' not in params:
+            params = None
+            print("Please specify '_sample.json'. This file is needed for constructing tests. ")
+    else:
+        params = None
+        print("Couldn't find 'algorithm_params' folder. Will be generated tests only for algorithm from given maps.")
+
+    start_time = time()
+    # Parsing previous results
+    if args.log:
+        f = open(args.log)
+        tasks = []
+        borders = [0, 0]
+        lines = f.readlines()
+        f.close()
+        for i, row in enumerate(lines):
+            if group_title.match(row.strip()):
+                borders[0] = i
+                break
+        try:
+            borders[1] = lines.index('\n')
+        except ValueError:
+            borders[1] = len(lines)
+        for i, row in enumerate(lines):
+            if borders[0] < i < borders[1] and not group_title.match(row.strip()):
+                tasks.append(eval(row.strip()))
+    else:
+        tasks = None
+
     # prepairing output dir
-    output_dir = args.output
+    output_dir = path.abspath(args.output)
     if path.isdir(output_dir):
         rmtree(output_dir)
     if path.isfile(output_dir):
         remove(output_dir)
     mkdir(output_dir)
 
-    tasks = defaultdict(list)
-    nodes_pattern = re.compile(r'nodescreated=(?P<nodes>\d+).*')
-    for map_name in files:
-        try:
-            data = parse_map(path.join(dir_path, map_name))
-        except Exception:
-            continue
-        while len(tasks[map_name]) < args.n:
-            task_s = [randint(0, data['width'] - 1), randint(0, data['height'] - 1), 0]
-            task_f = [randint(0, data['width'] - 1), randint(0, data['height'] - 1), 0]
-            task_s[2] = data['map'][task_s[1]][task_s[0]]
-            task_f[2] = data['map'][task_f[1]][task_f[0]]
-            if data['min_alt'] is not None:
-                task_s[2] = max(task_s[2], data['min_alt'])
-                task_f[2] = max(task_f[2], data['min_alt'])
-            if data['max_alt'] is not None:
-                task_s[2] = min(task_s[2], data['max_alt'])
-                task_f[2] = min(task_f[2], data['max_alt'])
+    if tasks is None:
+        manager = Manager()
+        pool = Pool(processes=4)
+        tasks = manager.list()
+        for map_name in files:
+            pool.apply_async(generate_test_for_map, (path.join(map_dir, map_name), args.n, exec_path, params['_sample'], tasks))
+        pool.close()
+        pool.join()
 
-            task = {
-                'start': tuple(task_s),
-                'finish': tuple(task_f),
-                'map': map_name,
-                'nodes': 0
-            }
-            nodes = get_astar_nodes(exec_path, path.join(dir_path, map_name), task)
-            if nodes is not None:
-                task['nodes'] = nodes
-                tasks[map_name].append(task)
-
-    tmp = []
-    for elem in tasks.values():
-        tmp.extend(elem)
-    tasks = tmp
-
+    # Clustering tests and forming a groups
     keys = list(map(lambda x: x['nodes'], tasks))
     dividers = jenks(keys, args.k)
     print(dividers)
@@ -246,13 +334,48 @@ if __name__ == "__main__":
         groups[left].append(task)
 
     summary = open(path.join(output_dir, "summary.txt"), 'w')
-    main_name_pattern = re.compile(r'.*/(?P<name>[^/]*)\.xml')
-    for i in range(len(groups)):
-        summary.write("Group " + str(i + 1) + ':\n\t')
-        print(*groups[i], sep='\n\t', file=summary)
-        mkdir(path.join(output_dir, str(i + 1)))
-        for j in range(len(groups[i])):
-            name = main_name_pattern.match(groups[i][j]['map']).group('name')
-            make_map(groups[i][j]['map'],
-                     path.join(path.join(output_dir, str(i + 1)), name + '_' + str(i + 1) + '_' + str(j + 1) + '.xml'),
-                     groups[i][j])
+
+    mkdir(path.join(output_dir, 'source_maps'))
+    for map_name in files:
+        copyfile(path.join(map_dir, map_name), path.join(output_dir, 'source_maps/' + map_name))
+
+    if params is None:
+        for i in range(len(groups)):
+            summary.write("Group " + str(i + 1) + ':\n\t')
+            print(*groups[i], sep='\n\t', file=summary)
+            if args.write_maps:
+                mkdir(path.join(output_dir, str(i + 1)))
+                for j in range(len(groups[i])):
+                    name = main_name_pattern.match(groups[i][j]['map']).group('name')
+                    make_map(groups[i][j]['map'],
+                             path.join(path.join(output_dir, str(i + 1)), name + '_' + str(i + 1) + '_' + str(j + 1) + '.xml'),
+                             groups[i][j])
+    else:
+        summary.write('TEST GROUPS:\n')
+        for i in range(len(groups)):
+            summary.write("Group " + str(i + 1) + ':\n\t')
+            print(*sorted(groups[i], key=lambda x: x['nodes']), sep='\n\t', file=summary)
+
+        if args.write_maps:
+            del params['_sample']
+            summary.write("\n\nALGORITHMS:\n")
+            chdir(output_dir)
+            for algo_name in params:
+                summary.write('\t' + algo_name + ': ')
+                f = open(params[algo_name])
+                summary.write(loads(f.read())['description'] + '\n')
+                f.close()
+
+                mkdir(algo_name)
+                chdir(algo_name)
+                for i in range(len(groups)):
+                    mkdir(str(i + 1))
+                    for j in range(len(groups[i])):
+                        name = main_name_pattern.match(groups[i][j]['map']).group('name')
+                        make_map(path.join(map_dir, groups[i][j]['map']),
+                                 path.join(str(i + 1), name + '_' + str(i + 1) + '_' + str(j + 1) + '.xml'),
+                                 groups[i][j], params[algo_name])
+                chdir(path.pardir)
+
+    print("Finished in {} seconds".format(time() - start_time))
+    summary.close()
