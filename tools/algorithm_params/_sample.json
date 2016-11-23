@@ -2,7 +2,7 @@
   "description" : "Algorithm parameters, which used to cluster random tests.",
   "algorithm" : [
     ["searchtype", "astar"],
-    ["hweight", "1"],
+    ["hweight", "2"],
     ["metrictype", "euclid"],
     ["breakingties", "g-max"],
     ["linecost", "1"],

@@ -266,16 +266,14 @@ bool ClusteredSets::Insert(const Node &NewNode) {
 
     NodeCoordEqual equal;
     for (auto it = range.first; it != range.second; ++it) {
-        if (equal(NewNode, *it)) {
-            if ((NewNode.Parent == nullptr && it->Parent == nullptr ) || equal(*NewNode.Parent, *it->Parent)) {
-                node_found = true;
-                if (NewNode.F < it->F) {
-                    updated = true;
-                    data[NewNode.i].erase(it);
-                    data[NewNode.i].insert(NewNode);
-                }
-                break;
+        if ((NewNode.Parent == nullptr && it->Parent == nullptr) || equal(*NewNode.Parent, *it->Parent)) {
+            node_found = true;
+            if (NewNode.F < it->F) {
+                updated = true;
+                data[NewNode.i].erase(it);
+                data[NewNode.i].insert(NewNode);
             }
+            break;
         }
     }
     if (!node_found) {
@@ -309,7 +307,7 @@ void ClusteredSets::DeleteMin() {
     auto range = data[min_pos].equal_range(min);
     for (auto it = range.first; it != range.second; ++it) {
         if (equal(min, *it)) {
-            if ((min.Parent == nullptr && it->Parent == nullptr ) || equal(*min.Parent, *it->Parent)) {
+            if ((min.Parent == nullptr && it->Parent == nullptr) || equal(*min.Parent, *it->Parent)) {
                 data[min_pos].erase(it);
                 --size_;
                 break;

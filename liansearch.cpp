@@ -216,7 +216,7 @@ bool LianSearch::stopCriterion() {
     }
 
 
-    if ((closeSize > stepLimit) && (stepLimit > 0)) {
+    if (stepLimit > 0 && closeSize > stepLimit) {
         std::cout << "Algorithm esceeded step limit!" << std::endl;
         return true;
     }
@@ -261,7 +261,6 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
         open->DeleteMin();
 
         node_ptr = &(*(close.insert(curNode)));
-        closeSize++;
         //Если текущая точка - целевая, цикл поиска завершается
         if (curNode.i == Map.goal_i && curNode.j == Map.goal_j && curNode.z == Map.goal_z) {
             pathFound = true;
@@ -283,6 +282,7 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
     /*if (Log->loglevel >= CN_LOGLVL_LOW)
         Log->writeToLogOpenClose(open, close, Map.height);*/
     if (pathFound) {
+        sresult.maxAngle = makeAngles(curNode);
         makePrimaryPath(curNode, Map);
 
         // Uses hppath to calculate angles
@@ -446,26 +446,35 @@ const Node *LianSearch::tryToDecreaseRadius(const Node *node_ptr, int width) {
     return node_ptr;
 }
 
-void LianSearch::ResetParent(Node &node, const cMap &map) const {
-    while (node.Parent != nullptr && node.Parent->Parent != nullptr && (node.Parent->Parent->Parent == nullptr ||
-                                                                        checkTurnAngle(*node.Parent->Parent->Parent,
-                                                                                       *node.Parent->Parent, node)) &&
-           checkLineSegment(map, *node.Parent->Parent, node)) {
+void LianSearch::ResetParent(Node &node, const Node *prev, const cMap &map) const {
+    while (node.Parent != nullptr && node.Parent->Parent != nullptr &&
+           (node.Parent->Parent->Parent == nullptr ||
+            checkTurnAngle(*node.Parent->Parent->Parent, *node.Parent->Parent, node)) &&
+            (prev == nullptr || checkTurnAngle(*node.Parent->Parent, node, *prev)) &&
+            checkLineSegment(map, *node.Parent->Parent, node)) {
         node.Parent = node.Parent->Parent;
     }
 }
 
 void LianSearch::makePrimaryPath(Node curNode, const cMap &map) {
     angles.resize(0);
-    double pathLenth = 0;
+    const Node *prev = nullptr;
     while (curNode.Parent != nullptr) {
-        ResetParent(curNode, map);
+        ResetParent(curNode, prev, map);
         hppath.List.push_front(curNode);
-        pathLenth += linecost * calculateDistanceFromCellToCell(*curNode.Parent, curNode);
+        prev = &(*hppath.List.begin());
         curNode = *curNode.Parent;
     }
     hppath.List.push_front(curNode);
-    sresult.pathlength = pathLenth;
+
+    double pathLenth = 0;
+    std::list<Node>::const_iterator cur_it, next_it;
+    next_it = hppath.List.begin();
+    cur_it = next_it++;
+    for (; next_it != hppath.List.end(); ++cur_it, ++next_it) {
+        pathLenth += calculateDistanceFromCellToCell(*cur_it, *next_it);
+    }
+    sresult.pathlength = pathLenth * linecost;
 }
 
 void LianSearch::makeSecondaryPath(Node curNode) {
@@ -519,11 +528,11 @@ double LianSearch::makeAngles() {
     double scalarProduct;
     double cosAngle;
     double maxAngle = 0;
-    std::list<Node>::const_reverse_iterator sectionStart, sectionMiddle, sectionFinish;
-    sectionStart = sectionMiddle = sectionFinish = hppath.List.rbegin();
-    ++++sectionStart;
+    std::list<Node>::const_iterator sectionStart, sectionMiddle, sectionFinish;
+    sectionStart = sectionMiddle = sectionFinish = hppath.List.begin();
+    ++ ++sectionFinish;
     ++sectionMiddle;
-    for (; sectionStart != hppath.List.rend(); ++sectionStart, ++sectionFinish, ++sectionMiddle) {
+    for (; sectionFinish != hppath.List.end(); ++sectionStart, ++sectionFinish, ++sectionMiddle) {
         dis1 = calculateDistanceFromCellToCell(*sectionStart, *sectionMiddle);
         dis2 = calculateDistanceFromCellToCell(*sectionMiddle, *sectionFinish);
 

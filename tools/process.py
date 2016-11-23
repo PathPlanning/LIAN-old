@@ -20,7 +20,7 @@ SETTINGS = {
 }
 
 
-def parse_log(filename, shell=False):
+def parse_log(filename, shell=False, is_section_path=None):
     parse_result = {}
 
     tree = ET.parse(filename)
@@ -60,10 +60,14 @@ def parse_log(filename, shell=False):
     path = []
     closed = set()
     opened = set()
+
+    if is_section_path is None:
+        is_section_path = False
+
     if log.find('path').text != 'Path NOT found!':
         level = log.find('lplevel')
         # For all paths 'lppath' section is used
-        if (True or not any_angle_search and level is not None):
+        if (not is_section_path and level is not None):
             path = set()
             for node in level.iter('node'):
                 path.add((int(node.get('x')), int(node.get('y'))))
@@ -90,6 +94,18 @@ def parse_log(filename, shell=False):
     parse_result['closed_list'] = closed
     parse_result['opened_list'] = opened
     parse_result['path'] = path
+
+    summary = log.find('summary')
+    parse_result['summary'] = {}
+    parse_result['summary']['path_found'] = (summary.get('pathfound') == 'true')
+    if parse_result['summary']['path_found']:
+        parse_result['summary']['lenth'] = float(summary.get('pathlength'))
+        parse_result['summary']['time'] = float(summary.get('time'))
+        parse_result['summary']['steps'] = int(summary.get('numberofsteps'))
+        parse_result['summary']['nodes'] = int(summary.get('nodescreated'))
+        if algo_name == 'lian':
+            parse_result['summary']['max_angle'] = float(summary.get('maxAngle'))
+            parse_result['summary']['sections'] = int(summary.get('sections'))
 
     return parse_result
 
@@ -167,9 +183,9 @@ def make_path(exec_filename, input_filename):
                    stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
 
 
-def make_path_and_picture(exec_filename, input_filename, log_filename, picture_filename, scale=2, picture_format='PNG'):
+def make_path_and_picture(exec_filename, input_filename, log_filename, picture_filename, scale=2, timeout=15, picture_format='PNG'):
     code = subprocess.run([exec_filename, input_filename],
-                          stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT).returncode
+                          stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, timeout=timeout).returncode
     if code == 0:
         data = parse_log(log_filename)
         illustrate(data, picture_filename, picture_format, scale)
@@ -187,6 +203,7 @@ def make_path_and_picture(exec_filename, input_filename, log_filename, picture_f
 if __name__ == "__main__":
     import argparse
     from os import listdir, cpu_count, path, walk
+    from time import time
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", required=True, help="Путь к исполняемому файлу проекта")
@@ -194,8 +211,8 @@ if __name__ == "__main__":
     parser.add_argument("--logs", required=False, help="Путь к папке с результатами поиска в формате XML или единичному файлу")
     parser.add_argument("--scale", required=False, type=int,
                         help="Масштаб карты, относительно заданного в файле", default=2)
-    parser.add_argument("--no_image", required=False, help="Не генерировать изображения к результату", type=bool)
-    parser.add_argument('-r', required=False, help="Рекурсивно искать задания", type=bool, default=False)
+    parser.add_argument("--no_image", required=False, help="Не генерировать изображения к результату", action="store_true")
+    parser.add_argument('-r', required=False, help="Рекурсивно искать задания", action="store_true")
     parser.add_argument('-t', required=False, help="Количество потоков выполнения заданий", type=int, default=4)
     args = parser.parse_args()
     exec_path = path.abspath(args.exe)
@@ -203,7 +220,7 @@ if __name__ == "__main__":
         print("Incorrect path to the executable")
         exit(1)
 
-    task_pattern = re.compile(r'.*/?(?P<name>[^/]+)(?<!_log)\.xml')
+    task_pattern = re.compile(r'(.*/)?(?P<name>[^/]+)(?<!_log)\.xml')
     dir_path = path.abspath(args.test)
     if path.isdir(dir_path):
         task_files = []
@@ -243,16 +260,20 @@ if __name__ == "__main__":
             tasks[filename] = (get_log_output_filename(filename),
                                                     path.join(path.dirname(filename), m.group('name') + '.plain.png'))
 
+    start_time = time()
     with multiprocessing.Pool(min(args.t, cpu_count())) as pool:
-        for inp_path, val in tasks.items():
-            if args.no_image:
-                pool.apply_async(make_path, [exec_path, inp_path])
-            elif logs is not None:
-                logs_pattern = re.compile(r'(?P<name>.+)_log\.xml')
-                for cand in logs:
-                    if logs_pattern.match(cand) or len(logs) == 1:
-                        pool.apply_async(parse_and_illustrate, [cand])
-            else:
-                pool.apply_async(make_path_and_picture, [exec_path, inp_path, val[0], val[1], args.scale])
+        if logs is not None:
+            logs_pattern = re.compile(r'(?P<name>.+)_log\.xml')
+            for cand in logs:
+                if logs_pattern.match(cand) or len(logs) == 1:
+                    pool.apply_async(parse_and_illustrate, [cand])
+        else:
+            for inp_path, val in tasks.items():
+                if args.no_image:
+                    pool.apply_async(make_path, [exec_path, inp_path])
+                else:
+                    pool.apply_async(make_path_and_picture, [exec_path, inp_path, val[0], val[1], args.scale])
         pool.close()
         pool.join()
+    print('Finished in {} seconds'.format(time() - start_time))
+

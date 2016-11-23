@@ -7,11 +7,9 @@ from json import loads, load
 from subprocess import Popen, PIPE, STDOUT, TimeoutExpired
 from collections import defaultdict
 from time import time
+from math import sqrt
 
 from jenks import jenks  # library with jenks natural breaks from https://github.com/perrygeo/jenks
-
-
-EASIEST_TASK = 1000
 
 
 class DSU:
@@ -55,6 +53,7 @@ class DSU:
                 res = [j for j in range(len(self.data)) if self.are_joined(i, j)]
                 used.add(self.find(i))
                 yield res
+
 
 def parse_map(filename):
     parse_result = {}
@@ -159,8 +158,9 @@ def make_map(source_map_filename, output_filename, task, algorithm_params_json=N
     tree.write(output_filename)
 
 
-def generate_test_for_map(map_path, number_tests, exe_path, sample_params=None, shared_list=None):
-    res = []
+def generate_test_for_map(map_path, number_tests, exe_path, min_nodes=0, min_dist=0, min_time=0, run_pretest=False, sample_params=None,
+                          shared_list=None):
+    res = {}
     try:
         data = parse_map(map_path)
         j = map_path.rfind('/')
@@ -181,6 +181,10 @@ def generate_test_for_map(map_path, number_tests, exe_path, sample_params=None, 
             task_s[2] = max(task_s[2], data['min_alt'])
             task_f[2] = max(task_f[2], data['min_alt'])
 
+        dist = sqrt((task_f[0] - task_s[0]) ** 2 + (task_f[1] - task_s[1]) ** 2 + (task_f[2] - task_s[2]) ** 2)
+        if dist < min_dist or (tuple(task_s), tuple(task_f)) in res:
+            continue
+
         task = {
             'start': tuple(task_s),
             'finish': tuple(task_f),
@@ -189,21 +193,25 @@ def generate_test_for_map(map_path, number_tests, exe_path, sample_params=None, 
             'time': 0,
             'found': False
         }
-        if sample_params is None:
-            get_astar_summary(exe_path, map_path, task)
+        if run_pretest:
+            if sample_params is None:
+                get_astar_summary(exe_path, map_path, task)
+            else:
+                get_astar_summary(exe_path, map_path, task, sample_json=sample_params)
+            if task['found'] and task['nodes'] >= min_nodes and task['time'] >= min_time:
+                res[tuple(task_s), tuple(task_f)] = task
         else:
-            get_astar_summary(exe_path, map_path, task, sample_json=sample_params)
-        if task['found'] and task['nodes'] >= EASIEST_TASK:
-            res.append(task)
+            res[tuple(task_s), tuple(task_f)] = task
 
     if shared_list is not None:
+        res = list(res.values())
         shared_list.extend(res)
     else:
-        return res
+        return list(res.values())
 
 
 # tries to execute Astar binary. If successfully, write extra data to the task
-def get_astar_summary(Astar_exe_path, map_path, task, timeout=5, verbose=False, sample_json=None):
+def get_astar_summary(Astar_exe_path, map_path, task, timeout=10, verbose=False, sample_json=None):
     test_map = "/tmp/1.xml"
     while path.isfile(test_map):
         test_map = "/tmp/" + str(randint(1, 100000)) + ".xml"
@@ -227,11 +235,11 @@ def get_astar_summary(Astar_exe_path, map_path, task, timeout=5, verbose=False, 
     remove(test_map)
     return False
 
+
 nodes_pattern = re.compile(r'nodescreated=(?P<nodes>\d+)')
 time_pattern = re.compile(r'time=(?P<time>\d+\.\d*)')
-main_name_pattern = re.compile(r'.*/?(?P<name>[^/]*)\.xml')
+main_name_pattern = re.compile(r'(.*/)?(?P<name>[^/]*)\.xml')
 group_title = re.compile(r'group (?P<number>\d+):?\s*', re.IGNORECASE)
-
 
 if __name__ == "__main__":
     import argparse
@@ -243,8 +251,17 @@ if __name__ == "__main__":
     parser.add_argument("-n", required=True, help="Количество тестов на одной карте", type=int)
     parser.add_argument("-k", required=False, type=int, help="Количество групп тестов", default=1)
     parser.add_argument("--output", required=False, help="Путь для вывода результата", default="tests/")
-    parser.add_argument("--write_maps", required=False, help="Генерировать карты заданий", default=False, type=bool)
-    parser.add_argument("--log", required=False, help="Взять результаты теста из указанного файла")
+    parser.add_argument("--write_maps", required=False, help="Генерировать карты заданий", action="store_true")
+    parser.add_argument("--log", required=False, help="Взять сгенерированные тесты из указанного файла")
+    parser.add_argument("--n_complex", required=False,
+                        help="Ограничивать сложность тестов снизу результатом 'nodescreated' работы алгоритма A* на них",
+                        type=int, default=0)
+    parser.add_argument("--dl_complex", required=False,
+                        help="Ограничивать сложность тестов снизу расстоянием между стартом и финишом", type=float,
+                        default=0.0)
+    parser.add_argument('--no_pretest', required=False, help='Не использовать A* при генерации тестов',
+                        action="store_true")
+    parser.add_argument('--t_complex', required=False, help='Ограничивать сложность тестов снизу временем работы A*', type=float, default=0)
     args = parser.parse_args()
     exec_path = path.abspath(args.exe)
     if not path.isfile(exec_path):
@@ -312,7 +329,9 @@ if __name__ == "__main__":
         pool = Pool(processes=4)
         tasks = manager.list()
         for map_name in files:
-            pool.apply_async(generate_test_for_map, (path.join(map_dir, map_name), args.n, exec_path, params['_sample'], tasks))
+            pool.apply_async(generate_test_for_map,
+                             (path.join(map_dir, map_name), args.n, exec_path, args.n_complex, args.dl_complex, args.t_complex,
+                              not args.no_pretest, params['_sample'], tasks))
         pool.close()
         pool.join()
 
@@ -348,7 +367,8 @@ if __name__ == "__main__":
                 for j in range(len(groups[i])):
                     name = main_name_pattern.match(groups[i][j]['map']).group('name')
                     make_map(groups[i][j]['map'],
-                             path.join(path.join(output_dir, str(i + 1)), name + '_' + str(i + 1) + '_' + str(j + 1) + '.xml'),
+                             path.join(path.join(output_dir, str(i + 1)),
+                                       name + '_' + str(i + 1) + '_' + str(j + 1) + '.xml'),
                              groups[i][j])
     else:
         summary.write('TEST GROUPS:\n')

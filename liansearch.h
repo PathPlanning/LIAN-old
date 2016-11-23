@@ -132,7 +132,7 @@ private:
     bool ProcessSuccessor(const Node *Node_ptr, Node successor, const cMap &Map);
     bool ProcessSuccessor(const Node *Node_ptr, const Node& successor, const cMap &Map, const Node& direct_succ, int max_shift);
 
-    void ResetParent(Node &node, const cMap &map) const;
+    void ResetParent(Node &node, const Node *prev, const cMap &map) const;
 };
 
 #endif // LIANSEARCH_H
