@@ -2,12 +2,13 @@
 #include <cmath>
 #include <chrono>
 #include <functional>
-#include <time.h>
 #include <list>
 #include <unordered_set>
 
 #include "gl_const.h"
 #include "Bresenham.h"
+
+#define POSTSMOOTH 0
 
 LianSearch::~LianSearch() {
     delete open;
@@ -216,7 +217,7 @@ bool LianSearch::stopCriterion() {
     }
 
 
-    if (stepLimit > 0 && closeSize > stepLimit) {
+    if (stepLimit > 0 && close.size() > stepLimit) {
         std::cout << "Algorithm esceeded step limit!" << std::endl;
         return true;
     }
@@ -285,8 +286,10 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
         sresult.maxAngle = makeAngles(curNode);
         makePrimaryPath(curNode, Map);
 
+#if POSTSMOOTH
         // Uses hppath to calculate angles
-        sresult.maxAngle = makeAngles();
+        sresult.maxAngle = makeAngles(curNode);
+#endif
 
         finish_time = std::chrono::high_resolution_clock::now();
 
@@ -303,8 +306,8 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
     }
     sresult.time = std::chrono::duration_cast<std::chrono::nanoseconds>(finish_time - start_time).count();
     sresult.time /= 1000000000;
-    sresult.nodescreated = open->size() + closeSize;
-    sresult.numberofsteps = closeSize;
+    sresult.nodescreated = open->size() + close.size();
+    sresult.numberofsteps = close.size();
     return sresult;
 }
 
@@ -360,8 +363,7 @@ bool LianSearch::expand(const Node *Node_ptr, const cMap &Map) {
         }
         // Calculating borders for searching successors
         if (found_direct_succ) {
-            double sub_radius = sinLimit;
-            sub_radius = std::max(sub_radius, (double) 1 - cosLimit);
+            double sub_radius = std::max(sinLimit, (double) 1 - cosLimit);
             direct_shift_limit = ceil(sub_radius * Node_ptr->radius);
 
             direct_succ.i += Node_ptr->i;
@@ -450,13 +452,14 @@ void LianSearch::ResetParent(Node &node, const Node *prev, const cMap &map) cons
     while (node.Parent != nullptr && node.Parent->Parent != nullptr &&
            (node.Parent->Parent->Parent == nullptr ||
             checkTurnAngle(*node.Parent->Parent->Parent, *node.Parent->Parent, node)) &&
-            (prev == nullptr || checkTurnAngle(*node.Parent->Parent, node, *prev)) &&
-            checkLineSegment(map, *node.Parent->Parent, node)) {
+           (prev == nullptr || checkTurnAngle(*node.Parent->Parent, node, *prev)) &&
+           checkLineSegment(map, *node.Parent->Parent, node)) {
         node.Parent = node.Parent->Parent;
     }
 }
 
 void LianSearch::makePrimaryPath(Node curNode, const cMap &map) {
+#if POSTSMOOTH
     angles.resize(0);
     const Node *prev = nullptr;
     while (curNode.Parent != nullptr) {
@@ -475,6 +478,20 @@ void LianSearch::makePrimaryPath(Node curNode, const cMap &map) {
         pathLenth += calculateDistanceFromCellToCell(*cur_it, *next_it);
     }
     sresult.pathlength = pathLenth * linecost;
+#else
+    std::vector<float> compressed_angles;
+    hppath.List.push_front(curNode);
+    curNode = *curNode.Parent;
+    for (size_t k = 0; curNode.Parent != nullptr; ++k) {
+        if (angles[k] != 0.0) {
+            hppath.List.push_front(curNode);
+            compressed_angles.push_back(angles[k]);
+        }
+        curNode = *curNode.Parent;
+    }
+    hppath.List.push_front(curNode);
+    angles = std::move(compressed_angles);
+#endif
 }
 
 void LianSearch::makeSecondaryPath(Node curNode) {
@@ -491,36 +508,7 @@ void LianSearch::makeSecondaryPath(Node curNode) {
 }
 
 double LianSearch::makeAngles(Node curNode) {
-    angles.resize(0);
-    double angle;
-    double dis1;
-    double dis2;
-    double scalarProduct;
-    double cosAngle;
-    double maxAngle = 0;
-    while ((curNode.Parent != nullptr) && (curNode.Parent->Parent != nullptr)) {
-        dis1 = calculateDistanceFromCellToCell(curNode, *(curNode.Parent));
-        dis2 = calculateDistanceFromCellToCell(*(curNode.Parent), *(curNode.Parent->Parent));
-        scalarProduct = (curNode.j - curNode.Parent->j) * (curNode.Parent->j - curNode.Parent->Parent->j) +
-                        (curNode.Parent->i - curNode.i) * (curNode.Parent->Parent->i - curNode.Parent->i) +
-                        (curNode.z - curNode.Parent->z) * (curNode.Parent->z - curNode.Parent->Parent->z);
-
-        if (dis1 != 0 && dis2 != 0) {
-            cosAngle = (scalarProduct / dis1) / dis2;
-            cosAngle = std::min(cosAngle, 1.0);
-            cosAngle = std::max(-1.0, cosAngle);
-            angle = acos(cosAngle) * M_1_PI * 180;
-            maxAngle = std::max(maxAngle, fabs(angle));
-            angles.push_back(angle);
-        }
-        curNode = *curNode.Parent;
-    }
-
-    angles.shrink_to_fit();
-    return maxAngle;
-}
-
-double LianSearch::makeAngles() {
+#if POSTSMOOTH
     angles.resize(0);
     double angle;
     double dis1;
@@ -552,6 +540,35 @@ double LianSearch::makeAngles() {
 
     angles.shrink_to_fit();
     return maxAngle;
+#else
+    angles.resize(0);
+    double angle;
+    double dis1;
+    double dis2;
+    double scalarProduct;
+    double cosAngle;
+    double maxAngle = 0;
+    while ((curNode.Parent != nullptr) && (curNode.Parent->Parent != nullptr)) {
+        dis1 = calculateDistanceFromCellToCell(curNode, *(curNode.Parent));
+        dis2 = calculateDistanceFromCellToCell(*(curNode.Parent), *(curNode.Parent->Parent));
+        scalarProduct = (curNode.j - curNode.Parent->j) * (curNode.Parent->j - curNode.Parent->Parent->j) +
+                        (curNode.Parent->i - curNode.i) * (curNode.Parent->Parent->i - curNode.Parent->i) +
+                        (curNode.z - curNode.Parent->z) * (curNode.Parent->z - curNode.Parent->Parent->z);
+
+        if (dis1 != 0 && dis2 != 0) {
+            cosAngle = (scalarProduct / dis1) / dis2;
+            cosAngle = std::min(cosAngle, 1.0);
+            cosAngle = std::max(-1.0, cosAngle);
+            angle = acos(cosAngle) * M_1_PI * 180;
+            maxAngle = std::max(maxAngle, fabs(angle));
+            angles.push_back(angle);
+        }
+        curNode = *curNode.Parent;
+    }
+
+    angles.shrink_to_fit();
+    return maxAngle;
+#endif
 }
 
 bool LianSearch::ProcessSuccessor(const Node *Node_ptr, Node successor, const cMap &Map) {

@@ -47,73 +47,10 @@ public:
     virtual bool empty() const;
 };
 
-class MinHeap : public iOpen {
-private:
-    std::vector<Node> _vector;
-    bool unique_;
-    int breaking_tie;
-
-    virtual bool less(const Node &x, const Node &y) const;
-
-    void BubbleDown(size_t index);
-
-    void BubbleUp(size_t index);
-
-    void Heapify();
-
-public:
-    MinHeap();
-
-    MinHeap(int breakingtie, bool unique_nodes);
-
-    template<typename T>
-    MinHeap(T begin, T end, int breakingtie, bool unique_nodes);
-
-    virtual bool Insert(const Node &newValue);
-
-    virtual Node FindMin() const;
-
-    virtual void DeleteMin();
-
-    virtual size_t size() const;
-
-    virtual bool empty() const;
-
-    //MinHeap& operator=(const MinHeap& other) = default;
-
-    template<typename T>
-    void ReplaceData(T begin, T end);
-};
-
-class ClusteredHeap : public iOpen {
-private:
-    std::vector<MinHeap> data;
-
-    size_t size_;
-
-    mutable size_t min_pos;
-
-public:
-    ClusteredHeap() = default;
-
-    ClusteredHeap(size_t size);
-
-    virtual bool Insert(const Node &NewNode);
-
-    virtual Node FindMin() const;
-
-    virtual void DeleteMin();
-
-    virtual size_t size() const;
-
-    virtual bool empty() const;
-
-};
-
 class ClusteredSets : public iOpen {
 private:
     std::vector<Node> loc_mins;
-    std::vector<std::unordered_set<Node, std::hash<Node>, NodeCoordEqual>> data;
+    std::vector<std::unordered_multiset<Node, std::hash<Node>, NodeCoordEqual>> data;
     size_t size_;
     mutable size_t min_pos;
 

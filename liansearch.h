@@ -125,8 +125,6 @@ private:
     void makeSecondaryPath(Node curNode);
 
     double makeAngles(Node curNode);
-    // Calculate angles using hppath
-    double makeAngles();
 
     // Checks successor and put it in open if necessary
     bool ProcessSuccessor(const Node *Node_ptr, Node successor, const cMap &Map);

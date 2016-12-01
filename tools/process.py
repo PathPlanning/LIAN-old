@@ -178,9 +178,9 @@ def get_log_output_filename(task_filename):
     return m.group('name') + "_log.xml"
 
 
-def make_path(exec_filename, input_filename):
+def make_path(exec_filename, input_filename, timeout=15):
     subprocess.run([exec_filename, input_filename],
-                   stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT)
+                   stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, timeout=timeout)
 
 
 def make_path_and_picture(exec_filename, input_filename, log_filename, picture_filename, scale=2, timeout=15, picture_format='PNG'):
