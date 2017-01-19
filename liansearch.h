@@ -2,12 +2,12 @@
 #define LIANSEARCH_H
 
 #include "sNode.h"
-#include "cList.h"
 #include "cMap.h"
 #include "cSearch.h"
 #include "Queues.h"
 
 #include <vector>
+#include <list>
 #include <unordered_set>
 
 class LianSearch : public cSearch {
@@ -32,17 +32,18 @@ private:
 
     double cosLimit;
     double sinLimit;
+    // The upper estimate of distance in which the successors with allowed turn angle might be founded
+    // The center of the sphere is in "no turn" successor
+    double shift_radius;
 
-    // Минимальная дистанция шага
-    int distance;
+    int distance; // Initial section length
 
     int numOfParentsToIncreaseRadius;
 
     //array of radius value. The greatest radius at the beginning
     std::vector<int> listOfDistances;
-    int listOfDistancesSize;
 
-    // Вес эвристики
+    // Heuristic weight coefficient
     float weight;
 
     // Другой эвристический коэффициент
@@ -59,27 +60,22 @@ private:
 
     bool lesserCircle; // проверять ближайшие вершины на проходимость
 
-    // максимальное число шагов цикла поиска
-    unsigned int stepLimit;
+    unsigned int stepLimit; // Maximal number of steps made by algorithm
 
-    // число вершин в списках open и close
-    unsigned int closeSize;
-
-    // во сколько раз можно уменьшать изначальную длину шага
     float decreaseDistanceFactor;
-    int distanceMin;
 
-    // Виртуальные узлы, составляющие окружность
+    int distanceMin; // Minimal section length
+
+    // Precomputed spheres for each radius with centers in (0, 0, 0)
     std::vector<std::unordered_set<Node, std::hash<Node>, NodeCoordEqual>> circleNodes;
 
     std::vector<float> angles;
 
     iOpen *open;
 
-    // Итоговый путь
-    cList hppath, lppath;
+    // Resulting paths
+    std::list<Node> hppath, lppath;
 
-    // список Close
     std::unordered_multiset<Node, std::hash<Node>, NodeCoordEqual> close;
 
     // метод, вычисляющий окружность по Брезенхему и записывающий
@@ -114,7 +110,7 @@ private:
     int tryToIncreaseRadius(Node curNode);
 
     // Returns the pointer to the new node
-    const Node* tryToDecreaseRadius(const Node *node_ptr, int width);
+    const Node *tryToDecreaseRadius(const Node *node_ptr, int width);
 
     void findSuccessors(const Node curNode, std::vector<Node> &successors, const cMap &Map);
 
@@ -128,9 +124,11 @@ private:
 
     // Checks successor and put it in open if necessary
     bool ProcessSuccessor(const Node *Node_ptr, Node successor, const cMap &Map);
-    bool ProcessSuccessor(const Node *Node_ptr, const Node& successor, const cMap &Map, const Node& direct_succ, int max_shift);
 
-    void ResetParent(Node &node, const Node *prev, const cMap &map) const;
+    bool ProcessSuccessor(const Node *Node_ptr, const Node &successor, const cMap &Map, const Node &direct_succ,
+                          int max_shift);
+
+    void PostSmooth(const cMap &map);
 };
 
 #endif // LIANSEARCH_H

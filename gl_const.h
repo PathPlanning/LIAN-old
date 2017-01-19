@@ -1,10 +1,9 @@
 #ifndef GL_CONST_H
 #define GL_CONST_H
 
-#define CN_PI_CONSTANT 3.14159265359
-#define CN_SQRT2_CONSTANT 1.41421356237
-
 #define CN_LOG          "_log"
+
+#define COMPUTATION_EPS 0.0001
 
 //Parametrs Type
 #define CN_PT_LOGLVL    0   // log level

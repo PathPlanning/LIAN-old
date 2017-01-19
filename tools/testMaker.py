@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 from random import randint, randrange
 import re
 from shutil import rmtree, copyfile

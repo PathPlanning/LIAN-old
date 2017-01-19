@@ -21,7 +21,6 @@ SOURCES += main.cpp \
     cMission.cpp \
     cMap.cpp \
     cLogger.cpp \
-    cList.cpp \
     cConfig.cpp \
     liansearch.cpp \
     Bresenham.cpp \
@@ -38,7 +37,6 @@ HEADERS += \
     cMission.h \
     cMap.h \
     cLogger.h \
-    cList.h \
     cConfig.h \
     liansearch.h \
     Bresenham.h \

@@ -1,7 +1,6 @@
 #ifndef CSEARCH_H
 #define CSEARCH_H
 
-#include "cList.h"
 #include "cMap.h"
 #include "cLogger.h"
 #include "cXmlLogger.h"
