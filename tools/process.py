@@ -41,12 +41,33 @@ def parse_log(filename, shell=False, is_section_path=None):
         parse_result["cellsize"] = int(map.find("cellsize").text)
     except AttributeError:
         print("Couldn't find size of cell (attribute <cellsize>) in {}. Would be ignored.".format(filename))
-    parse_result['start'] = (int(map.find("startx").text), int(map.find("starty").text))
-    parse_result['finish'] = (int(map.find("finishx").text), int(map.find("finishy").text))
+
+    parse_result['start'] = (int(map.find("startx").text), int(map.find("starty").text), int(map.find("startz").text))
+    parse_result['finish'] = (int(map.find("finishx").text), int(map.find("finishy").text), int(map.find("finishz").text))
 
     parse_result['map'] = []
     for plain in map.find('grid'):
         parse_result['map'].append([int(i) for i in plain.text.split()])
+
+    if parse_result['max_level'] is None:
+        parse_result['max_level'] = max(chain.from_iterable(parse_result['map']))
+
+    parse_result['floor'] = None
+    parse_result['ceiling'] = None
+
+    try:
+        alt_lims = map.find('altitudelimits')
+        parse_result['floor'] = int(alt_lims.get('min'))
+        parse_result['ceiling'] = int(alt_lims.get('max'))
+    except Exception:
+        pass
+
+    if parse_result['floor'] is None:
+        parse_result['floor'] = 0
+
+    if parse_result['ceiling'] is None:
+        parse_result['ceiling'] = parse_result['max_level']
+
 
     algo_name = root.find('algorithm').find('searchtype').text.lower()
     if algo_name in {'bfs', 'jp_search', 'dijkstra', 'astar'}:
@@ -177,7 +198,7 @@ def get_log_output_filename(task_filename):
     return m.group('name') + "_log.xml"
 
 
-def make_path(exec_filename, input_filename, timeout=15):
+def make_path(exec_filename, input_filename, timeout=40):
     subprocess.run([exec_filename, input_filename],
                    stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, timeout=timeout)
 

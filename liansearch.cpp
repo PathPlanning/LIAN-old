@@ -302,8 +302,13 @@ bool LianSearch::checkTurnAngle(const Node &start, const Node &middle, const Nod
     double scalar_product =
             (middle.i - start.i) * (finish.i - middle.i) + (middle.j - start.j) * (finish.j - middle.j) +
             (middle.z - start.z) * (finish.z - middle.z);
-    double cosAngle = scalar_product / calculateDistanceFromCellToCell(start, middle);
-    cosAngle /= calculateDistanceFromCellToCell(middle, finish);
+
+    auto dis_mul = calculateDistanceFromCellToCell(start, middle) * calculateDistanceFromCellToCell(middle, finish);
+    if (dis_mul == 0) {
+        return true;
+    }
+
+    double cosAngle = scalar_product / dis_mul;
 
     //cosAngle = std::min(cosAngle, 1.0);
     //cosAngle = std::max(-1.0, cosAngle);
@@ -488,12 +493,15 @@ void LianSearch::PostSmooth(const cMap &map) {
     std::list<Node> smoothed_path;
     {
         auto prev = hppath.rbegin();
-        auto candidate = prev++ ++ ++;
-        auto current_parent = candidate++ ++;
+        auto candidate = prev;
+        auto current_parent = candidate;
+        ++ ++ ++ prev;
+        ++ ++ candidate;
+
         Node current = *current_parent++;
         Node next = current;
         for (; candidate != hppath.rend(); ++candidate, ++prev) {
-            if (candidate->g + linecost * calculateDistanceFromCellToCell(*candidate, current) + COMPUTATION_EPS < current.g &&
+            if (candidate->g + linecost * calculateDistanceFromCellToCell(*candidate, current) < current.g &&
                 (prev == hppath.rend() || checkTurnAngle(*prev, *candidate, current)) &&
                 checkTurnAngle(*candidate, current, next) && checkLineSegment(map, *candidate, current)) {
 
