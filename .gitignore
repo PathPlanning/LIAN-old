@@ -73,7 +73,6 @@ pip-selfcheck.json
 venv/
 *.pyc
 
-*.xml
 *.path.txt
 *.png
 build/
