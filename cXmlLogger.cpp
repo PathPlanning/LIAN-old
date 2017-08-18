@@ -122,7 +122,8 @@ void cXmlLogger::writeToLogMap(const cMap &Map, const cList &path) {
 }
 
 void
-cXmlLogger::writeToLogOpenClose(const cList *open, const std::unordered_multimap<int, Node> &close, const int size) {
+cXmlLogger::writeToLogOpenClose(const std::vector<std::unordered_multimap<unsigned, Node>> &open,
+                                const std::unordered_multimap<int, Node> &close) {
 
     if (loglevel == CN_LOGLVL_NO || loglevel == CN_LOGLVL_HIGH) return;
 
@@ -142,12 +143,14 @@ cXmlLogger::writeToLogOpenClose(const cList *open, const std::unordered_multimap
     lowlevel->InsertEndChild(*element);
     child = lowlevel->LastChild();
 
+    // Deprecated. Writing out minimum node
+    /*
     Node min;
     min.F = -1;
     int exc = 0;
-    for (int i = 0; i < size; i++)
-        if (open[i].List.size() > 0)
-            if (open[i].List.begin()->F <= min.F || min.F == -1) {
+    for (int i = 0; i < open.size(); i++)
+        if (!open[i].empty())
+            if (open[i].begin()->F <= min.F || min.F == -1) {
                 if (open[i].List.begin()->F == min.F && open[i].List.begin()->g > min.g) {
                     min = *open[i].List.begin();
                     exc = i;
@@ -166,21 +169,20 @@ cXmlLogger::writeToLogOpenClose(const cList *open, const std::unordered_multimap
         element->SetAttribute(CNS_TAG_ATTR_PARY, min.Parent->i);
         child->InsertEndChild(*element);
     }
-    for (int i = 0; i < size; i++)
-        if (open[i].List.size() > 0)
-            for (std::list<Node>::const_iterator it = open[i].List.begin(); it != open[i].List.end(); ++it) {
-                if (it != open[exc].List.begin()) {
-                    element->Clear();
-                    element->SetAttribute(CNS_TAG_ATTR_X, it->j);
-                    element->SetAttribute(CNS_TAG_ATTR_Y, it->i);
-                    element->SetDoubleAttribute(CNS_TAG_ATTR_F, it->F);
-                    element->SetDoubleAttribute(CNS_TAG_ATTR_G, it->g);
-                    if (it->g > 0) {
-                        element->SetAttribute(CNS_TAG_ATTR_PARX, it->Parent->j);
-                        element->SetAttribute(CNS_TAG_ATTR_PARY, it->Parent->i);
-                    }
-                    child->InsertEndChild(*element);
+     */
+    for (int i = 0; i < open.size(); i++)
+        if (!open[i].empty())
+            for (auto it = open[i].begin(); it != open[i].end(); ++it) {
+                element->Clear();
+                element->SetAttribute(CNS_TAG_ATTR_X, it->second.j);
+                element->SetAttribute(CNS_TAG_ATTR_Y, it->second.i);
+                element->SetDoubleAttribute(CNS_TAG_ATTR_F, it->second.F);
+                element->SetDoubleAttribute(CNS_TAG_ATTR_G, it->second.g);
+                if (it->second.g > 0) {
+                    element->SetAttribute(CNS_TAG_ATTR_PARX, it->second.Parent->j);
+                    element->SetAttribute(CNS_TAG_ATTR_PARY, it->second.Parent->i);
                 }
+                child->InsertEndChild(*element);
             }
 
     element = new TiXmlElement(CNS_TAG_CLOSE);
@@ -269,15 +271,9 @@ void cXmlLogger::writeToLogHpLevel(const cList &path) {
 }
 
 void
-cXmlLogger::writeToLogSummary(const cList &path, int numberofsteps, int nodescreated, float length, long double Time,
+cXmlLogger::writeToLogSummary(const cList &path, int numberofsteps, int nodescreated, float length, double Time,
                               float maxAngle, int sections) {
     if (loglevel == CN_LOGLVL_NO) return;
-    std::string timeValue;
-    stringstream stream;
-    stream << Time;
-    stream >> timeValue;
-    stream.clear();
-    stream.str("");
     TiXmlElement *element = doc->FirstChildElement(CNS_TAG_ROOT);
     element = element->FirstChildElement(CNS_TAG_LOG);
     element = element->FirstChildElement(CNS_TAG_SUM);
@@ -292,6 +288,6 @@ cXmlLogger::writeToLogSummary(const cList &path, int numberofsteps, int nodescre
     element->SetAttribute(CNS_TAG_ATTR_NODESCREATED, nodescreated);
     element->SetAttribute(CNS_TAG_ATTR_SECTIONS, sections);
     element->SetDoubleAttribute(CNS_TAG_ATTR_LENGTH, length);
-    element->SetAttribute(CNS_TAG_ATTR_TIME, timeValue.c_str());
+    element->SetDoubleAttribute(CNS_TAG_ATTR_TIME, Time);
     element->SetDoubleAttribute(CNS_TAG_ATTR_MAXANGLE, maxAngle);
 }

@@ -17,30 +17,34 @@
 #define CN_PT_DDF       7   // coefficient to decrease distance
 #define CN_PT_LC        8   // linecost
 #define CN_PT_DM        9   // distancemin
-#define CN_PT_CLC       10  // check lesser circle
+#define CN_PT_CLC       10  // pivot circle radius
 #define CN_PT_NOP       11  // number of parents to increase radius
+#define CN_PT_BT        12  // breakingties
 
-#define CN_PT_NUM      12 // количество параметров
+#define CN_PT_NUM      13 // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
 
 //Default values of parameters
 #define CN_PTD_AL       30
 #define CN_PTD_D        4
 #define CN_PTD_W        2
-#define CN_PTD_SL       20000   // Максимальное количество шагов цикла поиска,
-                                // после которых будет сделан вывод, что пути не
-                                // существует
-#define CN_PTD_DD       100     // На сколько будем делить размер карты, чтобы получить
-                                // радиус шага
+#define CN_PTD_SL       20000   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ,
+                                // пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ
+                                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+#define CN_PTD_DD       100     // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                                // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
 #define CN_PTD_LR       1
 
 #define CN_PTD_LC       1.0     //linecost
 
-#define CN_PTD_DDF      1       // коэффициент, на который делится distance для получения меньшего радиуса
+#define CN_PTD_DDF      1       // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ distance пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
-#define CN_PTD_DMIN     3       // минимальный допустимый радиус
+#define CN_PTD_DMIN     3       // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
-#define CN_PTD_NOFPTOINCRAD 2   // количество предков, у которых должен совпадать радиус, чтобы можно было увеличить радиус теущей вершины
+#define CN_PTD_NOFPTOINCRAD 2   // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+
+#define CN_BT_GMAX 1
+#define CN_BT_GMIN 2
 
 //Obstacle
 #define CN_OBSTL 1
@@ -72,7 +76,8 @@
     #define CNS_TAG_STEPLIMIT       "steplimit"
     #define CNS_TAG_CRADIUSFACTOR   "circleRadiusFactor"
     #define CNS_TAG_CURVHEURWEIGHT  "curvatureHeuristicWeight"
-    #define CNS_TAG_CHECKCIRCLE     "checkLesserCircle"
+    #define CNS_TAG_BREAKINGTIE     "breakingties"
+    #define CNS_TAG_CHECKCIRCLE     "pivotCircleRadius"
     #define CNS_TAG_LINECOST        "linecost"
     #define CNS_TAG_DISTANCEMIN     "distanceMin"
     #define CNS_TAG_DECRDISTFACTOR  "decreaseDistanceFactor"
@@ -123,6 +128,8 @@
         #define CNS_TAG_ATTR_TRUE       "true"
         #define CNS_TAG_ATTR_FALSE      "false"
     #define CNS_TAG_ATTR_MAXANGLE       "maxAngle"
+    #define CNS_TAG_ATTR_GMIN           "g-min"
+    #define CNS_TAG_ATTR_GMAX           "g-max"
 
 
 

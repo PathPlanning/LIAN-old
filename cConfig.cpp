@@ -32,8 +32,9 @@ bool cConfig::getConfig(const char *FileName) {
     float circleRadiusFactor;
     float curvatureHeuriscitWeight;
     float linecost;
-    bool checkLesserCircle = false;
+    float pivotRadius;
     float decreaseDistance;
+    int breakingties;
     int distanceMin;
     int numOfParentsToIncreaseRadius;
     std::stringstream stream;
@@ -239,24 +240,41 @@ bool cConfig::getConfig(const char *FileName) {
     }
     searchParams[CN_PT_LC] = linecost;
 
+    element = algorithm->FirstChildElement(CNS_TAG_BREAKINGTIE);
+    if (!element) {
+        std::cout << "No '" << CNS_TAG_BREAKINGTIE << "' element found inside '" << CNS_TAG_ALGORITHM
+                  << "' section. It's set to" << CNS_TAG_ATTR_GMAX <<"." << std::endl;
+        breakingties = CN_BT_GMAX;
+    } else {
+        value = element->GetText();
+        if (value == CNS_TAG_ATTR_GMAX) {
+            breakingties = CN_BT_GMAX;
+        } else if (value == CNS_TAG_ATTR_GMIN) {
+            breakingties = CN_BT_GMIN;
+        } else {
+            std::cout << "Wrong '" << CNS_TAG_BREAKINGTIE << "' element. Set to default value \"" << CNS_TAG_ATTR_GMAX << "\"." << std::endl;
+            breakingties = CN_BT_GMAX;
+        }
+    }
+    searchParams[CN_PT_BT] = breakingties;
+
 
     element = algorithm->FirstChildElement(CNS_TAG_CHECKCIRCLE);
     if (!element) {
         std::cout << "No '" << CNS_TAG_CHECKCIRCLE << "' element found inside '" << CNS_TAG_ALGORITHM
-                  << "' section. It's set to " << CNS_TAG_ATTR_FALSE << "." << std::endl;
-        checkLesserCircle = 0;
+                  << "' section. It's set to 0." << std::endl;
+        pivotRadius = 0;
     } else {
         value = element->GetText();
-        if (value == CNS_TAG_ATTR_FALSE) {
-            checkLesserCircle = 0;
-        } else if (value == CNS_TAG_ATTR_TRUE) {
-            checkLesserCircle = 1;
-        } else {
-            std::cout << "Wrong '" << CNS_TAG_CHECKCIRCLE << "' element." << std::endl;
-            checkLesserCircle = 0;
+        stream << value;
+        stream >> pivotRadius;
+        stream.clear();
+        stream.str("");
+        if (pivotRadius < 0) {
+            pivotRadius *= -1;
         }
     }
-    searchParams[CN_PT_CLC] = checkLesserCircle;
+    searchParams[CN_PT_CLC] = pivotRadius;
 
 
     element = algorithm->FirstChildElement(CNS_TAG_NOFPTOINCRAD);

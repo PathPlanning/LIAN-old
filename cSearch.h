@@ -13,7 +13,7 @@ class cSearch
 public:
     cSearch(){};
     virtual ~cSearch(){};
-    virtual void addOpen(Node& newNode) = 0;
+    virtual void addOpen(Node& newNode, unsigned key) = 0;
     virtual SearchResult startSearch(cLogger *Log, const cMap &Map) = 0;
 
     SearchResult sresult;

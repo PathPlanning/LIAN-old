@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <root>
+    <!-- Example of DLIAN run with angle limit 30 degrees, without pivot circle security check and dynamically changing section length (10, 5, 3)-->
     <map>
         <width>25</width>
         <height>25</height>
         <cellsize>24</cellsize>
-        <startx>3</startx>
-        <starty>10</starty>
-        <finishx>20</finishx>
+        <startx>1</startx>
+        <starty>1</starty>
+        <finishx>17</finishx>
         <finishy>10</finishy>
         <grid>
             <row>0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</row>
@@ -39,13 +40,13 @@
     <algorithm>
         <metrictype>euclid</metrictype>
         <hweight>1</hweight>
-        <anglelimit>45</anglelimit>
-        <distance>5</distance>
-        <distanceMin>5</distanceMin>
+        <anglelimit>30</anglelimit>
+        <distance>10</distance>
+        <distanceMin>3</distanceMin>
         <decreaseDistanceFactor>2</decreaseDistanceFactor>
     </algorithm>
     <options>
-        <loglevel>1</loglevel>
+        <loglevel>1.5</loglevel>
         <logpath />
         <logfilename />
     </options>

@@ -12,23 +12,22 @@ class LianSearch : public cSearch
 
 public:
 
-    // Конструктор с параметрами:
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ:
     LianSearch(float angleLimit, int distance, float weight,
                unsigned int steplimit, float circleRadiusFactor, float curvatureHeuristicWeight,
                float decreaseDistanceFactor, int distanceMin,
-               float linecost, bool lesserCircle, int numOfParentsToIncreaseRadius);
+               float linecost, float pivotRadius, int numOfParentsToIncreaseRadius, int breakingties);
 
-    ~LianSearch();
-
-    // Собственно алгоритм поиска
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     SearchResult startSearch(cLogger *Log, const cMap &Map);
 
 private:
 
-    // Максимальный угол отклонения
+    typedef std::unordered_multimap<unsigned, Node> open_cluster_t;
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     float angleLimit;
 
-    // Минимальная дистанция шага
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
     int distance;
 
     int numOfParentsToIncreaseRadius;
@@ -36,73 +35,77 @@ private:
     std::vector<int> listOfDistances;
     int listOfDistancesSize;
 
-    // Вес эвристики
+    // Heuristic weight
     float weight;
 
-    // Другой эвристический коэффициент
-    // Если проверяется местонахождение целевой точки относительно окружности
-    // минимального радиуса, квадрат радиуса домножается на этот коэффициент
+    int breakingties;
+
+    // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     float circleRadiusFactor;
 
-    // Еще один эвристический коэффициент
-    // Если используется эвристика, характеризующая отклонение траектории от прямой
-    // на каждом шаге, то вычисляемая величина умножается на этот коэффициент
+    // пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
+    // пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     float curvatureHeuristicWeight;
 
-    float linecost; // "стоимость" движения по вертикали или горизонтали
+    float linecost; // cost of straight move between two neighbour (be edge) cells
 
-    bool lesserCircle; // проверять ближайшие вершины на проходимость
+    float pivotRadius; // Radius of safety circle around every turn point.
 
-    // максимальное число шагов цикла поиска
+    // Limit of steps made by the algorithm
     unsigned int stepLimit;
 
-    // число вершин в списках open и close
+    // Sizes of open and close sets
     unsigned int closeSize, openSize;
 
-    // во сколько раз можно уменьшать изначальную длину шага
+    // the factor, on which DLIAN tries to decrease path section length
     float decreaseDistanceFactor;
     int distanceMin;
 
-    // Виртуальные узлы, составляющие окружность
+    // precomputed shifts of circles for every distance
     std::vector< std::vector<Node> > circleNodes;
+
+    // Vector of nodes (shifts) for pivot security check
+    std::vector<Node> pivotCircle;
 
     std::vector<float> angles;
 
-    // Спиок Open + итоговый путь
-    cList *open, hppath, lppath;
+    // пїЅпїЅпїЅпїЅпїЅ Open + пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
+    cList hppath, lppath;
 
-    // список Close
+    std::vector<open_cluster_t> open;
+
+    std::vector<unsigned> cluster_minimums;
+
     std::unordered_multimap<int, Node> close;
 
-    void addOpen(Node &newNode);
+    void addOpen(Node &newNode, unsigned key);
 
-    // метод, вычисляющий окружность по Брезенхему и записывающий
-    // координаты узлов в список circleNodes (центр в точке [0, 0] )
-    // радиус - радиус окружности в клетках
+    // Precompute shifts for every distance circle
     void calculateCircle(int radius);
 
-    // метод вычисляет предпочтительный радиус исходя из парамтеров карты
+    void calculatePivotCircle();
+
     int calculatePreferableRadius(const cMap &Map);
 
     void calculateDistances();
 
-    Node findMin(int size);
+    Node findMin() const;
+    void deleteMin(const Node &min);
 
-    // метод строит отрезок с помощью алгоритма Брезенхема
+    // Draw discrete line between two nodes
     void calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal);
 
-    // метод строит отрезок с помощью алгоритма Брезенхема
-    // и проверяет его на наличие препятствий
+    // Check if there are no obstacles on line between two nodes
     bool checkLineSegment(const cMap &Map, const Node &start, const Node &goal);
 
-    // метод, вычисляющий "малую" окружность по брезенхему, для проверки свободного
-    // пространства в опорных точках
-    bool checkLesserCircle(const cMap &Map, const Node &center, const float radius);
+    // check that there are no obstacle in a safety radius from a turn point
+    bool checkPivotCircle(const cMap &Map, const Node &center);
 
     double calculateDistanceFromCellToCell(int start_i, int start_j, int fin_i, int fin_j);
 
-    // критерий остановки. Возвращает истину, если цикл поиска
-    // следует прекратить. Входящее значение - текущий номер шага алгоритма
     bool stopCriterion();
 
     int tryToIncreaseRadius(Node curNode);

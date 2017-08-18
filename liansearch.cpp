@@ -1,6 +1,6 @@
 #include "liansearch.h"
 #include <math.h>
-#include <time.h>
+#include <chrono>
 #include "gl_const.h"
 #include <list>
 
@@ -12,15 +12,11 @@
 #include <windows.h>
 #endif
 
-LianSearch::~LianSearch() {
-    delete[] open;
-}
-
 
 LianSearch::LianSearch(float angleLimit, int distance, float weight,
                        unsigned int steplimit, float circleRadiusFactor, float curvatureHeuristicWeight,
                        float decreaseDistanceFactor, int distanceMin,
-                       float linecost, bool lesserCircle, int numOfParentsToIncreaseRadius) {
+                       float linecost, float pivotRadius, int numOfParentsToIncreaseRadius, int breakingties) {
     this->angleLimit = angleLimit;
     this->distance = distance;
     this->weight = weight;
@@ -30,11 +26,11 @@ LianSearch::LianSearch(float angleLimit, int distance, float weight,
     this->decreaseDistanceFactor = decreaseDistanceFactor;
     this->distanceMin = distanceMin;
     this->linecost = linecost;
-    this->lesserCircle = lesserCircle;
+    this->pivotRadius = pivotRadius;
     this->numOfParentsToIncreaseRadius = numOfParentsToIncreaseRadius;
+    this->breakingties = breakingties;
     closeSize = 0;
     openSize = 0;
-    srand(time(NULL));
 }
 
 void LianSearch::calculateCircle(int radius) {
@@ -102,19 +98,32 @@ void LianSearch::calculateCircle(int radius) {
     }
 }
 
-bool LianSearch::checkLesserCircle(const cMap &Map, const Node &center, const float radius) {
-    int x = center.j;
-    int y = center.i;
+void LianSearch::calculatePivotCircle() {
+    int add_x, add_y, num = pivotRadius + 0.5;
+    Node node;
+    for (int x = -num; x <= +num; x++)
+        for (int y = -num; y <= +num; y++) {
+            add_x = x != 0 ? 1 : 0;
+            add_y = y != 0 ? 1 : 0;
+            if ((pow(2 * abs(x) - add_x, 2) + pow(2 * abs(y) - add_y, 2)) < pow(2 * pivotRadius, 2)) {
+                node.i = x;
+                node.j = y;
+                pivotCircle.push_back(node);
+            }
+        }
+    if (pivotCircle.empty()) {
+        node.i = node.j = 0;
+        pivotCircle.push_back(node);
+    }
+}
 
-    int squareRadius = (int) radius;
-
-    for (int i = -1 * squareRadius; i <= squareRadius; i++) {
-        for (int j = -1 * squareRadius; j <= squareRadius; j++) {
-            if ((x + j < 0) || (x + j >= Map.width)) continue;
-
-            if ((y + i < 0) || (y + i >= Map.height)) continue;
-
-            if (Map.Grid[y + i][x + j] == CN_OBSTL) return false;
+bool LianSearch::checkPivotCircle(const cMap &Map, const Node &center) {
+    int i, j;
+    for (Node node : pivotCircle) {
+        i = center.i + node.i;
+        j = center.j + node.j;
+        if (i > 0 && j > 0 && i < Map.height && j < Map.width && Map.Grid[i][j] != 0) {
+            return false;
         }
     }
 
@@ -489,57 +498,8 @@ double LianSearch::calculateDistanceFromCellToCell(int start_i, int start_j, int
     return sqrt(double(delta_i * delta_i) + double(delta_j * delta_j));
 }
 
-void LianSearch::addOpen(Node &newNode) {
-    std::list<Node>::iterator iter, pos;
-
-    bool posFound = false;
-
-    pos = open[newNode.i].List.end();
-
-    if (open[newNode.i].List.size() == 0) {
-        open[newNode.i].List.push_back(newNode);
-        openSize++;
-        return;
-    }
-
-    for (iter = open[newNode.i].List.begin(); iter != open[newNode.i].List.end(); ++iter) {
-        if ((iter->F >= newNode.F) && (!posFound)) {
-            pos = iter;
-            posFound = true;
-        }
-
-        if (iter->i == newNode.i && iter->j == newNode.j)
-            if ((iter->Parent->i == newNode.Parent->i) && (iter->Parent->j == newNode.Parent->j)) {
-                if (newNode.F >= iter->F) {
-                    return;
-                } else {
-                    if (pos == iter) {
-                        iter->g = newNode.g;
-                        iter->F = newNode.F;
-                        iter->c = newNode.c;
-                        iter->radius = newNode.radius;
-                        return;
-                    }
-                    open[newNode.i].List.erase(iter);
-                    openSize--;
-                    break;
-                }
-            }
-    }
-    openSize++;
-    open[newNode.i].List.insert(pos, newNode);
-}
-
 SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
-#ifdef __linux__
-    timeval begin, end;
-    gettimeofday(&begin, NULL);
-#else
-    LARGE_INTEGER begin,end,freq;
-    QueryPerformanceCounter(&begin);
-    QueryPerformanceFrequency(&freq);
-#endif
-
+    auto start_time = std::chrono::high_resolution_clock::now();
     calculateDistances();
 
     std::cout << "List of distances :";
@@ -547,19 +507,19 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
         std::cout << " " << listOfDistances[i];
     }
     std::cout << std::endl;
-    open = new cList[Map.height];
+    open.resize(Map.height);
+    cluster_minimums.resize(Map.height);
     Node curNode(Map.start_i, Map.start_j, 0.0, 0, 0.0);
     curNode.radius = distance;
     curNode.F = weight * linecost * calculateDistanceFromCellToCell(curNode.i, curNode.j, Map.goal_i, Map.goal_j);
     bool pathFound = false;
-    open[curNode.i].List.push_back(curNode);
-    openSize++;
+    addOpen(curNode, (unsigned) curNode.i * Map.width + (unsigned) curNode.j);
     calculateCircle((int) curNode.radius);
+    calculatePivotCircle();
     // �������� ���� ������
     while (!stopCriterion()) {
-        curNode = findMin(Map.height);
-        open[curNode.i].List.pop_front();
-        openSize--;
+        curNode = findMin();
+        deleteMin(curNode);
         close.insert({curNode.i * Map.width + curNode.j, curNode});
         closeSize++;
         //���� ������� ����� - �������, ���� ������ �����������
@@ -572,21 +532,19 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
                 if (tryToDecreaseRadius(curNode, Map.width))
                     if (expand(curNode, Map))
                         break;
-        if (Log->loglevel >= CN_LOGLVL_LOW)
-            Log->writeToLogOpenClose(open, close, Map.height);
+        if (Log->loglevel >= CN_LOGLVL_LOW) {
+            Log->writeToLogOpenClose(open, close);
+        }
     }
-    if (Log->loglevel == CN_LOGLVL_MED)
-        Log->writeToLogOpenClose(open, close, Map.height);
+    if (Log->loglevel == CN_LOGLVL_MED) {
+        Log->writeToLogOpenClose(open, close);
+    }
     if (pathFound) {
         float maxAngle = makeAngles(curNode);
         makePrimaryPath(curNode);
-#ifdef __linux__
-        gettimeofday(&end, NULL);
-        sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
-#else
-        QueryPerformanceCounter(&end);
-        sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
-#endif
+        auto finish_time = std::chrono::high_resolution_clock::now();
+        sresult.time = std::chrono::duration_cast<std::chrono::microseconds>(finish_time - start_time).count();
+        sresult.time /= 1000000;
         makeSecondaryPath(curNode);
         sresult.pathfound = true;
         sresult.pathlength = curNode.g;
@@ -599,13 +557,9 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
         sresult.sections = hppath.List.size() - 1;
         return sresult;
     } else {
-#ifdef __linux__
-        gettimeofday(&end, NULL);
-        sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
-#else
-        QueryPerformanceCounter(&end);
-        sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
-#endif
+        auto finish_time = std::chrono::high_resolution_clock::now();
+        sresult.time = std::chrono::duration_cast<std::chrono::microseconds>(finish_time - start_time).count();
+        sresult.time /= 1000000;
         sresult.pathfound = false;
         sresult.nodescreated = closeSize;
         sresult.numberofsteps = closeSize;
@@ -742,6 +696,8 @@ bool LianSearch::expand(const Node curNode, const cMap &Map) {
         if (Map.Grid[succi][succj] == CN_OBSTL)
             continue;
 
+        // Deprecated. Check if goal can be reached from current node, if turning with maximal angle.
+        /*
         if (circleRadiusFactor > 0) {
             float sin_gamma = (float) (succi - curNode.i) /
                               calculateDistanceFromCellToCell(curNode.i, curNode.j, succi, succj);
@@ -767,7 +723,7 @@ bool LianSearch::expand(const Node curNode, const cMap &Map) {
                 circleRadiusFactor * pow(incircleCircumcircleFactor * circleRadius, 2))
                 continue;
         }
-
+        */
         newNode.i = succi;
         newNode.j = succj;
         newNode.Parent = &(close.find(curNode.i * Map.width + curNode.j)->second);
@@ -782,9 +738,11 @@ bool LianSearch::expand(const Node curNode, const cMap &Map) {
         newNode.pathToParent = checkLineSegment(Map, *newNode.Parent, newNode);
 
 
-        if (lesserCircle)
-            if (newNode.pathToParent && ((curNode.i != Map.goal_i) || (curNode.j != Map.goal_j)))
-                newNode.pathToParent = checkLesserCircle(Map, curNode, CN_PTD_LR);
+        if (pivotRadius > 0) {
+            if (newNode.i != Map.goal_i || newNode.j != Map.goal_j) {
+                newNode.pathToParent &= checkPivotCircle(Map, newNode);
+            }
+        }
         if (newNode.pathToParent) {
             std::unordered_multimap<int, Node>::const_iterator it = close.find(newNode.i * Map.width + newNode.j);
             if (it != close.end()) {
@@ -798,20 +756,19 @@ bool LianSearch::expand(const Node curNode, const cMap &Map) {
                 if (!inclose) {
                     if (listOfDistancesSize > 1)
                         newNode.radius = tryToIncreaseRadius(newNode);
-                    addOpen(newNode);
+                    addOpen(newNode, (unsigned) newNode.i * Map.width + (unsigned) newNode.j);
                     successorsIsFine = true;
                 }
             } else {
                 if (listOfDistancesSize > 1)
                     newNode.radius = tryToIncreaseRadius(newNode);
-                addOpen(newNode);
+                addOpen(newNode, (unsigned) newNode.i * Map.width + (unsigned) newNode.j);
                 successorsIsFine = true;
             }
         }
     }
     return successorsIsFine;
 }
-
 
 bool LianSearch::tryToDecreaseRadius(Node &curNode, int width) {
     int i;
@@ -894,18 +851,84 @@ double LianSearch::makeAngles(Node curNode) {
     return maxAngle;
 }
 
-Node LianSearch::findMin(int size) {
+Node LianSearch::findMin() const {
     Node min;
-    min.F = -1;
-    for (int i = 0; i < size; i++) {
-        if (open[i].List.size() != 0)
-            if (open[i].List.begin()->F <= min.F || min.F == -1) {
-                if (open[i].List.begin()->F == min.F) {
-                    if (open[i].List.begin()->g >= min.g)
-                        min = *open[i].List.begin();
-                } else
-                    min = *open[i].List.begin();
+    min.F = std::numeric_limits<float>::infinity();
+    for (size_t i = 0; i < open.size(); ++i) {
+        if (!open.empty()) {
+            auto min_range = open[i].equal_range(cluster_minimums[i]);
+            for (auto it = min_range.first; it != min_range.second; ++it) {
+                if (it->second.F < min.F || (it->second.F == min.F &&
+                                             (breakingties == CN_BT_GMAX && it->second.g > min.g ||
+                                              breakingties == CN_BT_GMIN && it->second.g < min.g))) {
+                    min = it->second;
+                }
             }
+        }
     }
+
     return min;
+}
+
+void LianSearch::deleteMin(const Node &min) {
+    --openSize;
+    auto deleting_range = open[min.i].equal_range(cluster_minimums[min.i]);
+    for (auto it = deleting_range.first; it != deleting_range.second; ++it) {
+        if (it->second.g == min.F && it->second.Parent == min.Parent) {
+            open[min.i].erase(it);
+            break;
+        }
+    }
+    if (!open[min.i].empty()) {
+        Node new_min;
+        new_min.F = std::numeric_limits<float>::infinity();
+        for (auto it = open[min.i].begin(); it != open[min.i].end(); ++it) {
+            if (it->second.F < new_min.F || (it->second.F == new_min.F &&
+                                             (breakingties == CN_BT_GMAX && it->second.g > new_min.g ||
+                                              breakingties == CN_BT_GMIN && it->second.g < new_min.g))) {
+                new_min = it->second;
+                cluster_minimums[min.i] = it->first;
+            }
+        }
+    }
+}
+
+void LianSearch::addOpen(Node &newNode, unsigned key) {
+    auto range = open[newNode.i].equal_range(key);
+    bool found = false;
+    bool must_be_replaced = false;
+    for (auto it = range.first; it != range.second; ++it) {
+        if (it->second.Parent == newNode.Parent) {
+            found = true;
+            if (newNode.g < it->second.g) {
+                must_be_replaced = true;
+                open[newNode.i].erase(it);
+                break;
+            }
+        }
+    }
+    if (!found) {
+        ++openSize;
+    }
+    if (!found || must_be_replaced) {
+        open[newNode.i].insert({key, newNode});
+        if (open[newNode.i].size() == 1) {
+            cluster_minimums[newNode.i] = key;
+        } else {
+            Node min;
+            min.F = std::numeric_limits<float>::infinity();
+            auto min_range = open[newNode.i].equal_range(cluster_minimums[newNode.i]);
+            for (auto it = min_range.first; it != min_range.second; ++it) {
+                if (it->second.F < min.F || (it->second.F == min.F &&
+                                             (breakingties == CN_BT_GMAX && it->second.g > min.g ||
+                                              breakingties == CN_BT_GMIN && it->second.g < min.g))) {
+                    min = it->second;
+                }
+            }
+            if (newNode.F < min.F || (newNode.F == min.F && (breakingties == CN_BT_GMAX && newNode.g > min.g ||
+                                                             breakingties == CN_BT_GMIN && newNode.g < min.g))) {
+                cluster_minimums[newNode.i] = key;
+            }
+        }
+    }
 }
