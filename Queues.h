@@ -6,12 +6,14 @@
 #include <unordered_set>
 
 #include "sNode.h"
+#include "gl_const.h"
 
 class iOpen {
 protected:
     virtual bool less(const Node &x, const Node &y) const;
+    int breakingties;
 public:
-    iOpen() {};
+    iOpen(int breakingties=CN_SP_BT_GMAX) : breakingties(breakingties) {};
 
     virtual bool Insert(const Node &NewNode) = 0;
 
@@ -22,6 +24,8 @@ public:
     virtual size_t size() const = 0;
 
     virtual bool empty() const = 0;
+
+    virtual std::vector<Node> dump() const = 0;
 };
 
 class SortedList : public iOpen {
@@ -34,7 +38,7 @@ private:
 public:
     SortedList() = default;
 
-    SortedList(size_t size);
+    SortedList(size_t size, int breakingties = CN_SP_BT_GMAX);
 
     virtual bool Insert(const Node &NewNode);
 
@@ -45,6 +49,8 @@ public:
     virtual size_t size() const;
 
     virtual bool empty() const;
+
+    virtual std::vector<Node> dump() const;
 };
 
 class ClusteredSets : public iOpen {
@@ -57,7 +63,7 @@ private:
 public:
     ClusteredSets() = default;
 
-    ClusteredSets(size_t size);
+    ClusteredSets(size_t size, int breakingties = CN_SP_BT_GMAX);
 
     virtual bool Insert(const Node &NewNode);
 
@@ -68,6 +74,8 @@ public:
     virtual size_t size() const;
 
     virtual bool empty() const;
+
+    virtual std::vector<Node> dump() const;
 };
 
 #endif //LIANSEARCH_QUEUES_H

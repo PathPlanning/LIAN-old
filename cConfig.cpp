@@ -22,7 +22,6 @@ cConfig::~cConfig() {
     }
 }
 
-// TODO Add breaking tie parsing
 bool cConfig::getConfig(const char *FileName) {
     std::string value;
     float angle;
@@ -33,9 +32,10 @@ bool cConfig::getConfig(const char *FileName) {
     float circleRadiusFactor;
     float curvatureHeuriscitWeight;
     float linecost;
-    bool checkLesserCircle = false;
+    float pivotCircleRaius;
     float decreaseDistance;
     int distanceMin;
+    int breakingties;
     int numOfParentsToIncreaseRadius;
     std::stringstream stream;
 
@@ -245,20 +245,37 @@ bool cConfig::getConfig(const char *FileName) {
     element = algorithm->FirstChildElement(CNS_TAG_CHECKCIRCLE);
     if (!element) {
         std::cout << "No '" << CNS_TAG_CHECKCIRCLE << "' element found inside '" << CNS_TAG_ALGORITHM
-                  << "' section. It's compared to " << CNS_TAG_ATTR_FALSE << "." << std::endl;
-        checkLesserCircle = 0;
+                  << "' section. It's compared to 0." << std::endl;
+        pivotCircleRaius = 0;
     } else {
         value = element->GetText();
-        if (value == CNS_TAG_ATTR_FALSE) {
-            checkLesserCircle = 0;
-        } else if (value == CNS_TAG_ATTR_TRUE) {
-            checkLesserCircle = 1;
-        } else {
-            std::cout << "Wrong '" << CNS_TAG_CHECKCIRCLE << "' element." << std::endl;
-            checkLesserCircle = 0;
+        stream << value;
+        stream >> pivotCircleRaius;
+        stream.clear();
+        stream.str("");
+        if (pivotCircleRaius < 0) {
+            pivotCircleRaius *= -1;
         }
     }
-    searchParams[CN_PT_CLC] = checkLesserCircle;
+    searchParams[CN_PT_CLC] = pivotCircleRaius;
+
+    element = algorithm->FirstChildElement(CNS_TAG_BT);
+    if (!element) {
+        std::cout << "No '" << CNS_TAG_BT << "' element found inside '" << CNS_TAG_ALGORITHM
+                  << "' section. It's compared to\"" << CNS_TAG_ATTR_GMAX << "\"." << std::endl;
+        breakingties = CN_SP_BT_GMAX;
+    } else {
+        value = element->GetText();
+        if (value == CNS_TAG_ATTR_GMAX) {
+            breakingties = CN_SP_BT_GMAX;
+        } else if (value == CNS_TAG_ATTR_GMIN) {
+            breakingties = CN_SP_BT_GMIN;
+        } else {
+            std::cout << "Wrong " << CNS_TAG_BT << " tag. Set do default value \"" << CNS_TAG_ATTR_GMAX << "\"." << std::endl;
+            breakingties = CN_SP_BT_GMAX;
+        }
+    }
+    searchParams[CN_PT_BT] = breakingties;
 
 
     element = algorithm->FirstChildElement(CNS_TAG_NOFPTOINCRAD);

@@ -4,12 +4,19 @@
 
 bool iOpen::less(const Node &x, const Node &y) const {
     if (x.F == y.F) {
-        return x.g > y.g;
+        switch (breakingties) {
+            default:
+            case CN_SP_BT_GMAX:
+                return x.g > y.g;
+            case CN_SP_BT_GMIN:
+                return x.g < y.g;
+        }
     }
     return x.F < y.F;
 }
 
-SortedList::SortedList(size_t size) : data(size), size_(0), min_pos(size) {}
+SortedList::SortedList(size_t size, int breakingties) : data(size), size_(0), min_pos(size),
+                                                                        iOpen(breakingties) {}
 
 size_t SortedList::size() const {
     return size_;
@@ -84,8 +91,17 @@ void SortedList::DeleteMin() {
     min_pos = data.size();
 }
 
+std::vector<Node> SortedList::dump() const {
+    std::vector<Node> res;
+    for (size_t i = 0; i < data.size(); ++i) {
+        res.insert(res.end(), data[i].begin(), data[i].end());
+    }
+    return res;
+}
 
-ClusteredSets::ClusteredSets(size_t size) : loc_mins(size), data(size), size_(0), min_pos(size) {}
+ClusteredSets::ClusteredSets(size_t size, int breakingties) : loc_mins(size), data(size), size_(0),
+                                                                              min_pos(size),
+                                                                              iOpen(breakingties) {}
 
 size_t ClusteredSets::size() const {
     return size_;
@@ -163,4 +179,12 @@ void ClusteredSets::DeleteMin() {
         loc_mins[min_pos] = min;
     }
     min_pos = loc_mins.size();
+}
+
+std::vector<Node> ClusteredSets::dump() const {
+    std::vector<Node> res;
+    for (size_t i = 0; i < data.size(); ++i) {
+        res.insert(res.end(), data[i].begin(), data[i].end());
+    }
+    return res;
 }

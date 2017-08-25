@@ -18,8 +18,9 @@
 #define CN_PT_DM        9   // distancemin
 #define CN_PT_CLC       10  // check lesser circle
 #define CN_PT_NOP       11  // number of parents to increase radius
+#define CN_PT_BT        12
 
-#define CN_PT_NUM      12 // количество параметров
+#define CN_PT_NUM      13 // количество параметров
 
 
 //Default values of parameters
@@ -40,9 +41,6 @@
 #define CN_PTD_DMIN     3       // минимальный допустимый радиус
 
 #define CN_PTD_NOFPTOINCRAD 2   // количество предков, у которых должен совпадать радиус, чтобы можно было увеличить радиус теущей вершины
-
-#define CNS_SP_BT_GMIN "g-min"
-#define CNS_SP_BT_GMAX "g-max"
 
 #define CN_SP_BT_GMIN 1
 #define CN_SP_BT_GMAX 2
@@ -84,10 +82,12 @@
     #define CNS_TAG_STEPLIMIT       "steplimit"
     #define CNS_TAG_CRADIUSFACTOR   "circleRadiusFactor"
     #define CNS_TAG_CURVHEURWEIGHT  "curvatureHeuristicWeight"
-    #define CNS_TAG_CHECKCIRCLE     "checkLesserCircle"
+    #define CNS_TAG_CHECKCIRCLE     "pivotCircleRadius"
     #define CNS_TAG_LINECOST        "linecost"
     #define CNS_TAG_DISTANCEMIN     "distanceMin"
-    #define CNS_TAG_BT "breakingties"
+    #define CNS_TAG_BT              "breakingties"
+        #define CNS_TAG_ATTR_GMIN           "g-min"
+        #define CNS_TAG_ATTR_GMAX           "g-max"
     #define CNS_TAG_DECRDISTFACTOR  "decreaseDistanceFactor"
     #define CNS_TAG_NOFPTOINCRAD    "numOfParentsToIncreaseRadius"
     #define CNS_TAG_OPTIONS         "options"

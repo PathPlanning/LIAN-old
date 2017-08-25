@@ -18,7 +18,7 @@ public:
     LianSearch(double angleLimitDegree, int distance, float weight,
                unsigned int steplimit, float circleRadiusFactor, float curvatureHeuristicWeight,
                float decreaseDistanceFactor, int distanceMin,
-               float linecost, bool lesserCircle, int numOfParentsToIncreaseRadius);
+               float linecost, float pivotCircleRadius, int numOfParentsToIncreaseRadius, int breakingties);
 
     ~LianSearch();
 
@@ -58,13 +58,17 @@ private:
 
     float linecost; // "стоимость" движения по вертикали или горизонтали
 
-    bool lesserCircle; // проверять ближайшие вершины на проходимость
+    float pivotCircleRadius; // проверять ближайшие вершины на проходимость
+
+    std::vector<Node> pivotCircleShifts; // Shifts for checking pivot circle
 
     unsigned int stepLimit; // Maximal number of steps made by algorithm
 
     float decreaseDistanceFactor;
 
     int distanceMin; // Minimal section length
+
+    int breakingties;
 
     // Precomputed spheres for each radius with centers in (0, 0, 0)
     std::vector<std::unordered_set<Node, std::hash<Node>, NodeCoordEqual>> circleNodes;
@@ -78,10 +82,13 @@ private:
 
     std::unordered_multiset<Node, std::hash<Node>, NodeCoordEqual> close;
 
-    // метод, вычисляющий окружность по Брезенхему и записывающий
+    // метод, вычисляющий окружность и записывающий
     // координаты узлов в список circleNodes (центр в точке [0, 0, 0] )
     // радиус - радиус окружности в клетках
     void calculateCircles();
+
+    // Calclulating shifts for pivot cirle check
+    void calculatePivotCircleShifts();
 
     // метод вычисляет предпочтительный радиус исходя из парамтеров карты
     int calculatePreferableRadius(const cMap &Map);
@@ -94,7 +101,7 @@ private:
 
     // метод, вычисляющий "малую" окружность по брезенхему, для проверки свободного
     // пространства в опорных точках
-    bool checkLesserCircle(const cMap &Map, const Node &center, const float radius);
+    bool checkPivotCircle(const cMap &Map, const Node &center);
 
     // Checks is angle of turn in a path is correct
     bool checkTurnAngle(const Node &start, const Node &middlie, const Node &finish) const;

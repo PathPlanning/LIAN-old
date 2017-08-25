@@ -16,7 +16,7 @@ LianSearch::~LianSearch() {
 LianSearch::LianSearch(double angleLimitDegree, int distance, float weight,
                        unsigned int steplimit, float circleRadiusFactor, float curvatureHeuristicWeight,
                        float decreaseDistanceFactor, int distanceMin,
-                       float linecost, bool lesserCircle, int numOfParentsToIncreaseRadius) {
+                       float linecost, float pivotCircleRadius, int numOfParentsToIncreaseRadius, int breakingties) {
     angleLimit = angleLimitDegree * (M_PI / 180);
     //this->angleLimit = angleLimitDegree;
     cosLimit = cos(angleLimit);
@@ -30,8 +30,9 @@ LianSearch::LianSearch(double angleLimitDegree, int distance, float weight,
     this->decreaseDistanceFactor = decreaseDistanceFactor;
     this->distanceMin = distanceMin;
     this->linecost = linecost;
-    this->lesserCircle = lesserCircle;
+    this->pivotCircleRadius = pivotCircleRadius;
     this->numOfParentsToIncreaseRadius = numOfParentsToIncreaseRadius;
+    this->breakingties = breakingties;
 }
 
 
@@ -78,17 +79,27 @@ void LianSearch::calculateCircles() {
     }
 }
 
-bool LianSearch::checkLesserCircle(const cMap &Map, const Node &center, const float radius) {
-    int squareRadius = (int) radius;
-
-    for (int i = -1 * squareRadius; i <= squareRadius; i++) {
-        for (int j = -1 * squareRadius; j <= squareRadius; j++) {
-            for (int z = -1 * squareRadius; j <= squareRadius; j++) {
-                if (Map.CellOnGrid(center.i + i, center.j + j, center.z + z) &&
-                    Map.CellIsObstacle(center.i + i, center.j + j, center.z + z)) {
-                    return false;
+void LianSearch::calculatePivotCircleShifts() {
+    Node node;
+    for (int x = -pivotCircleRadius; x < pivotCircleRadius; ++x) {
+        for (int y = -pivotCircleRadius; y < pivotCircleRadius; ++y) {
+            for (int z = -pivotCircleRadius; z < pivotCircleRadius; ++z) {
+                if (x * x + y * y + z * z < pivotCircleRadius * pivotCircleRadius) {
+                    node.i = x;
+                    node.j = y;
+                    node.z = z;
+                    pivotCircleShifts.push_back(node);
                 }
             }
+        }
+    }
+}
+
+bool LianSearch::checkPivotCircle(const cMap &Map, const Node &center) {
+    for (Node shift : pivotCircleShifts) {
+        if (Map.CellOnGrid(center.i + shift.i, center.j + shift.j, center.z + shift.z) &&
+            Map.CellIsObstacle(center.i + shift.i, center.j + shift.j, center.z + shift.z)) {
+            return false;
         }
     }
 
@@ -119,7 +130,7 @@ bool LianSearch::stopCriterion() {
 
 
     if (stepLimit > 0 && close.size() > stepLimit) {
-        std::cout << "Algorithm esceeded step limit!" << std::endl;
+        std::cout << "Algorithm exceeded step limit!" << std::endl;
         return true;
     }
 
@@ -140,6 +151,7 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
     auto start_time = std::chrono::high_resolution_clock::now();
     decltype(start_time) finish_time;
     calculateDistances();
+    calculatePivotCircleShifts();
 
     std::cout << "List of distances :";
     for (int i = 0; i < listOfDistances.size(); i++) {
@@ -149,7 +161,7 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
 
     calculateCircles();
 
-    open = new ClusteredSets(Map.height);
+    open = new ClusteredSets(Map.height, breakingties);
     Node curNode(Map.start_i, Map.start_j, Map.start_z, 0.0, 0, 0.0);
     curNode.radius = distance;
     curNode.F = weight * linecost * calculateDistanceFromCellToCell(curNode, Node(Map.goal_i, Map.goal_j, Map.goal_z));
@@ -176,13 +188,11 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
                 }
             }
         }
-        // TODO correct openclose logging
-        /*if (Log->loglevel >= CN_LOGLVL_LOW)
-            Log->writeToLogOpenClose(open, close, Map.height);*/
+        if (Log->loglevel >= CN_LOGLVL_LOW)
+            Log->writeToLogOpenClose(open, close, Map.height);
     }
-    // TODO correct openclose logging
-    /*if (Log->loglevel >= CN_LOGLVL_LOW)
-        Log->writeToLogOpenClose(open, close, Map.height);*/
+    if (Log->loglevel >= CN_LOGLVL_MED)
+        Log->writeToLogOpenClose(open, close, Map.height);
     if (pathFound) {
         sresult.maxAngle = makeAngles(curNode);
         makePrimaryPath(curNode, Map);
@@ -456,9 +466,9 @@ bool LianSearch::ProcessSuccessor(const Node *Node_ptr, Node successor, const cM
 
     bool pathToParent = checkLineSegment(Map, *Node_ptr, successor);
 
-    if (lesserCircle)
+    if (pivotCircleRadius > 0)
         if (pathToParent && ((Node_ptr->i != Map.goal_i) || (Node_ptr->j != Map.goal_j) || (Node_ptr->z != Map.goal_z)))
-            pathToParent = checkLesserCircle(Map, *Node_ptr, CN_PTD_LR);
+            pathToParent = checkPivotCircle(Map, *Node_ptr);
     bool inclose;
     if (pathToParent) {
         auto range = close.equal_range(successor);
@@ -495,8 +505,8 @@ void LianSearch::PostSmooth(const cMap &map) {
         auto prev = hppath.rbegin();
         auto candidate = prev;
         auto current_parent = candidate;
-        ++ ++ ++ prev;
-        ++ ++ candidate;
+        ++ ++ ++prev;
+        ++ ++candidate;
 
         Node current = *current_parent++;
         Node next = current;

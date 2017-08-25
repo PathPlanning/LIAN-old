@@ -2,6 +2,7 @@
 #define CLOGGER_H
 
 #include"cMap.h"
+#include "Queues.h"
 
 #include <list>
 #include <vector>
@@ -22,8 +23,8 @@ public:
 
     virtual void writeToLogMap(const cMap &Map, const std::list<Node> &path) = 0;
 
-    virtual void writeToLogOpenClose(const std::list<Node> *open,
-                                     const std::unordered_multiset<Node> &close, const int size) = 0;
+    virtual void writeToLogOpenClose(const iOpen *open,
+                                     const std::unordered_multiset<Node, std::hash<Node>, NodeCoordEqual> &close, const int size) = 0;
 
     virtual void writeToLogPath(const std::list<Node> &path, const std::vector<float> &angles) = 0;
 

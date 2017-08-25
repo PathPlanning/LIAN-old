@@ -124,7 +124,9 @@ void cXmlLogger::writeToLogMap(const cMap &Map, const std::list<Node> &path) {
 }
 
 void
-cXmlLogger::writeToLogOpenClose(const std::list<Node> *open, const std::unordered_multiset<Node> &close, const int size) {
+cXmlLogger::writeToLogOpenClose(const iOpen *open,
+                                const std::unordered_multiset<Node, std::hash<Node>, NodeCoordEqual> &close,
+                                const int size) {
 
     if (loglevel == CN_LOGLVL_NO || loglevel == CN_LOGLVL_HIGH) return;
 
@@ -144,20 +146,7 @@ cXmlLogger::writeToLogOpenClose(const std::list<Node> *open, const std::unordere
     lowlevel->InsertEndChild(*element);
     child = lowlevel->LastChild();
 
-    Node min;
-    min.F = -1;
-    int exc = 0;
-    for (int i = 0; i < size; i++)
-        if (!open[i].empty())
-            if (open[i].begin()->F <= min.F || min.F == -1) {
-                if (open[i].begin()->F == min.F && open[i].begin()->g > min.g) {
-                    min = *open[i].begin();
-                    exc = i;
-                } else if (open[i].begin()->F < min.F || min.F == -1) {
-                    min = *open[i].begin();
-                    exc = i;
-                }
-            }
+    Node min = open->FindMin();
     if (min.F != -1) {
         element = new TiXmlElement(CNS_TAG_NODE);
         element->SetAttribute(CNS_TAG_ATTR_X, min.j);
@@ -170,24 +159,21 @@ cXmlLogger::writeToLogOpenClose(const std::list<Node> *open, const std::unordere
         element->SetAttribute(CNS_TAG_ATTR_PARZ, min.Parent->z);
         child->InsertEndChild(*element);
     }
-    for (int i = 0; i < size; i++)
-        if (!open[i].empty())
-            for (std::list<Node>::const_iterator it = open[i].begin(); it != open[i].end(); ++it) {
-                if (it != open[exc].begin()) {
-                    element->Clear();
-                    element->SetAttribute(CNS_TAG_ATTR_X, it->j);
-                    element->SetAttribute(CNS_TAG_ATTR_Y, it->i);
-                    element->SetAttribute(CNS_TAG_ATTR_Z, it->z);
-                    element->SetDoubleAttribute(CNS_TAG_ATTR_F, it->F);
-                    element->SetDoubleAttribute(CNS_TAG_ATTR_G, it->g);
-                    if (it->g > 0) {
-                        element->SetAttribute(CNS_TAG_ATTR_PARX, it->Parent->j);
-                        element->SetAttribute(CNS_TAG_ATTR_PARY, it->Parent->i);
-                        element->SetAttribute(CNS_TAG_ATTR_PARZ, it->Parent->z);
-                    }
-                    child->InsertEndChild(*element);
-                }
-            }
+    
+    for (Node node : open->dump()) {
+        element->Clear();
+        element->SetAttribute(CNS_TAG_ATTR_X, node.j);
+        element->SetAttribute(CNS_TAG_ATTR_Y, node.i);
+        element->SetAttribute(CNS_TAG_ATTR_Z, node.z);
+        element->SetDoubleAttribute(CNS_TAG_ATTR_F, node.F);
+        element->SetDoubleAttribute(CNS_TAG_ATTR_G, node.g);
+        if (node.g > 0) {
+            element->SetAttribute(CNS_TAG_ATTR_PARX, node.Parent->j);
+            element->SetAttribute(CNS_TAG_ATTR_PARY, node.Parent->i);
+            element->SetAttribute(CNS_TAG_ATTR_PARZ, node.Parent->z);
+        }
+        child->InsertEndChild(*element);
+    }
 
     element = new TiXmlElement(CNS_TAG_CLOSE);
     lowlevel->InsertEndChild(*element);

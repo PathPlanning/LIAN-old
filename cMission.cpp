@@ -27,15 +27,16 @@ void cMission::createSearch()
     //if(m_config.searchParams[CN_PT_ST] == CN_ST_LIAN)
         m_pSearch = new LianSearch((float)m_config.searchParams[CN_PT_AL],
                                    (int)m_config.searchParams[CN_PT_D],
-                                   (float)m_config.searchParams[CN_PT_W],
+                                   m_config.searchParams[CN_PT_W],
                                    (unsigned int)m_config.searchParams[CN_PT_SL],
-                                   (float)m_config.searchParams[CN_PT_CRF],
-                                   (float)m_config.searchParams[CN_PT_CHW],
-                                   (float)m_config.searchParams[CN_PT_DDF],
+                                   m_config.searchParams[CN_PT_CRF],
+                                   m_config.searchParams[CN_PT_CHW],
+                                   m_config.searchParams[CN_PT_DDF],
                                    (int)m_config.searchParams[CN_PT_DM],
-                                   (float)m_config.searchParams[CN_PT_LC],
-                                   (bool)m_config.searchParams[CN_PT_CLC],
-                                   (int)m_config.searchParams[CN_PT_NOP]);
+                                   m_config.searchParams[CN_PT_LC],
+                                   m_config.searchParams[CN_PT_CLC],
+                                   (int)m_config.searchParams[CN_PT_NOP],
+                                   (int)m_config.searchParams[CN_PT_BT]);
 }
 
 bool cMission::createLog()
