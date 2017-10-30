@@ -50,8 +50,8 @@
         <logfilename />
     </options>
     <log>
-        <mapfilename>/home/dmitry/LIAN/examples/example_1.xml</mapfilename>
-        <summary pathfound="true" numberofsteps="5" nodescreated="36" sections="4" pathlength="19.656855" time="6.6e-05" maxAngle="45.000000" />
+        <mapfilename>/home/admin/Pathplanning/LIAN/lian/LIAN/examples/example_1.xml</mapfilename>
+        <summary pathfound="true" numberofsteps="5" nodescreated="36" sections="4" pathlength="19.656855" time="0.000227" maxAngle="45.000000" />
         <path>
             <row number="0">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </row>
             <row number="1">0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 </row>

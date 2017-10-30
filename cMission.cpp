@@ -11,7 +11,6 @@ cMission::cMission(const char *fName) {
 cMission::~cMission() {
     delete m_pSearch;
     delete m_pLogger;
-    delete m_fileName;
 }
 
 bool cMission::getMap() {

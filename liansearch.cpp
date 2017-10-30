@@ -874,7 +874,7 @@ void LianSearch::deleteMin(const Node &min) {
     --openSize;
     auto deleting_range = open[min.i].equal_range(cluster_minimums[min.i]);
     for (auto it = deleting_range.first; it != deleting_range.second; ++it) {
-        if (it->second.g == min.F && it->second.Parent == min.Parent) {
+        if (it->second.g == min.g && it->second.Parent == min.Parent) {
             open[min.i].erase(it);
             break;
         }
