@@ -78,6 +78,7 @@ private:
     std::vector<open_cluster_t> open;
 
     std::vector<unsigned> cluster_minimums;
+    size_t global_minimum;
 
     std::unordered_multimap<int, Node> close;
 
@@ -92,7 +93,7 @@ private:
 
     void calculateDistances();
 
-    Node findMin() const;
+    Node findMin();
     void deleteMin(const Node &min);
 
     // Draw discrete line between two nodes

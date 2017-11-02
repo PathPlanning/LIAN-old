@@ -21,18 +21,19 @@
 #define CN_PT_NOP       11  // number of parents to increase radius
 #define CN_PT_BT        12  // breakingties
 
-#define CN_PT_NUM      13 // ���������� ����������
+#define CN_PT_NUM      13 // number of parameters
 
 
 //Default values of parameters
 #define CN_PTD_AL       30
 #define CN_PTD_D        4
 #define CN_PTD_W        2
-#define CN_PTD_SL       20000   // ������������ ���������� ����� ����� ������,
-                                // ����� ������� ����� ������ �����, ��� ���� ��
-                                // ����������
-#define CN_PTD_DD       100     // �� ������� ����� ������ ������ �����, ����� ��������
-                                // ������ ����
+#define CN_PTD_SL       20000   // maximal number of steps of search cycle,
+                                // after which the search will end with the conclusion,
+                                // that path does not exists.
+
+#define CN_PTD_DD       100     // value to divide parameters to get cell value
+
 #define CN_PTD_LR       1
 
 #define CN_PTD_LC       1.0     //linecost

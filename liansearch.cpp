@@ -519,9 +519,12 @@ SearchResult LianSearch::startSearch(cLogger *Log, const cMap &Map) {
     // �������� ���� ������
     while (!stopCriterion()) {
         curNode = findMin();
-        deleteMin(curNode);
+        //deleteMin(curNode);
         close.insert({curNode.i * Map.width + curNode.j, curNode});
         closeSize++;
+        //std::cout << curNode.j << "," << curNode.i << std::endl;
+        //std::cout << "open size: " << openSize << " close size: " << closeSize << std::endl;
+
         //���� ������� ����� - �������, ���� ������ �����������
         if (curNode.i == Map.goal_i && curNode.j == Map.goal_j) {
             pathFound = true;
@@ -851,9 +854,10 @@ double LianSearch::makeAngles(Node curNode) {
     return maxAngle;
 }
 
-Node LianSearch::findMin() const {
+Node LianSearch::findMin() {
     Node min;
     min.F = std::numeric_limits<float>::infinity();
+    std::unordered_multimap<unsigned, Node>::const_iterator cposition;
     for (size_t i = 0; i < open.size(); ++i) {
         if (!open.empty()) {
             auto min_range = open[i].equal_range(cluster_minimums[i]);
@@ -862,11 +866,25 @@ Node LianSearch::findMin() const {
                                              (breakingties == CN_BT_GMAX && it->second.g > min.g ||
                                               breakingties == CN_BT_GMIN && it->second.g < min.g))) {
                     min = it->second;
+                    cposition = it;
                 }
             }
         }
     }
-
+    cposition = open[min.i].erase(cposition);
+    if (!open[min.i].empty()) {
+        Node new_min;
+        new_min.F = std::numeric_limits<float>::infinity();
+        for (auto it = open[min.i].begin(); it != open[min.i].end(); ++it) {
+            if (it->second.F < new_min.F || (it->second.F == new_min.F &&
+                                             (breakingties == CN_BT_GMAX && it->second.g > new_min.g ||
+                                              breakingties == CN_BT_GMIN && it->second.g < new_min.g))) {
+                new_min = it->second;
+                cluster_minimums[min.i] = it->first;
+            }
+        }
+    }
+    --openSize;
     return min;
 }
 
@@ -898,20 +916,18 @@ void LianSearch::addOpen(Node &newNode, unsigned key) {
     bool found = false;
     bool must_be_replaced = false;
     for (auto it = range.first; it != range.second; ++it) {
-        if (it->second.Parent == newNode.Parent) {
+        if (it->second.Parent->i == newNode.Parent->i && it->second.Parent->j == newNode.Parent->j) {
             found = true;
-            if (newNode.g < it->second.g) {
-                must_be_replaced = true;
-                open[newNode.i].erase(it);
-                break;
-            }
+            if (newNode.F >= it->second.F) return;
+            must_be_replaced = true;
+            open[newNode.i].erase(it);
+            --openSize;
+            break;
         }
-    }
-    if (!found) {
-        ++openSize;
     }
     if (!found || must_be_replaced) {
         open[newNode.i].insert({key, newNode});
+         ++openSize;
         if (open[newNode.i].size() == 1) {
             cluster_minimums[newNode.i] = key;
         } else {
