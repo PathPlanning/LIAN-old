@@ -7,6 +7,7 @@
 #include "cSearch.h"
 #include <vector>
 #include <unordered_map>
+
 class LianSearch : public cSearch
 {
 
@@ -23,7 +24,7 @@ public:
 
 private:
 
-    typedef std::unordered_multimap<unsigned, Node> open_cluster_t;
+    typedef std::list<Node> open_cluster_t;
     // ������������ ���� ����������
     float angleLimit;
 
@@ -82,7 +83,7 @@ private:
 
     std::unordered_multimap<int, Node> close;
 
-    void addOpen(Node &newNode, unsigned key);
+    void addOpen(Node &newNode);
 
     // Precompute shifts for every distance circle
     void calculateCircle(int radius);

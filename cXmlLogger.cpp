@@ -122,7 +122,7 @@ void cXmlLogger::writeToLogMap(const cMap &Map, const cList &path) {
 }
 
 void
-cXmlLogger::writeToLogOpenClose(const std::vector<std::unordered_multimap<unsigned, Node>> &open,
+cXmlLogger::writeToLogOpenClose(const std::vector<std::list<Node> > &open,
                                 const std::unordered_multimap<int, Node> &close) {
 
     if (loglevel == CN_LOGLVL_NO || loglevel == CN_LOGLVL_HIGH) return;
@@ -174,13 +174,13 @@ cXmlLogger::writeToLogOpenClose(const std::vector<std::unordered_multimap<unsign
         if (!open[i].empty())
             for (auto it = open[i].begin(); it != open[i].end(); ++it) {
                 element->Clear();
-                element->SetAttribute(CNS_TAG_ATTR_X, it->second.j);
-                element->SetAttribute(CNS_TAG_ATTR_Y, it->second.i);
-                element->SetDoubleAttribute(CNS_TAG_ATTR_F, it->second.F);
-                element->SetDoubleAttribute(CNS_TAG_ATTR_G, it->second.g);
-                if (it->second.g > 0) {
-                    element->SetAttribute(CNS_TAG_ATTR_PARX, it->second.Parent->j);
-                    element->SetAttribute(CNS_TAG_ATTR_PARY, it->second.Parent->i);
+                element->SetAttribute(CNS_TAG_ATTR_X, it->j);
+                element->SetAttribute(CNS_TAG_ATTR_Y, it->i);
+                element->SetDoubleAttribute(CNS_TAG_ATTR_F, it->F);
+                element->SetDoubleAttribute(CNS_TAG_ATTR_G, it->g);
+                if (it->g > 0) {
+                    element->SetAttribute(CNS_TAG_ATTR_PARX, it->Parent->j);
+                    element->SetAttribute(CNS_TAG_ATTR_PARY, it->Parent->i);
                 }
                 child->InsertEndChild(*element);
             }
