@@ -1,35 +1,35 @@
-#include"cMission.h"
+#include"mission.h"
 
 #include <iostream>
 int main(int argc, char* argv[])
 {
     if (argc==2)
         {
-            cMission Mission(argv[1]);
+            Mission mission(argv[1]);
 
 
             std::cout<<"Retreiving map from input XML file.\n";
-            if (!Mission.getMap())
+            if (!mission.getMap())
             {
                 std::cout<<"Program terminated.\n";
                 return 0;
             }
 
             std::cout<<"Retreiving search algorithm configuration from input XML file.\n";
-            if (!Mission.getConfig())
+            if (!mission.getConfig())
             {
                 return 0;
             }
 
-            Mission.createSearch();
-            Mission.createLog();
-            Mission.startSearch();
+            mission.createSearch();
+            mission.createLog();
+            mission.startSearch();
 
             std::cout<<"Search is finished!"<<std::endl;
 
-            Mission.printSearchResultsToConsole();
+            mission.printSearchResultsToConsole();
 
-            Mission.saveSearchResultsToLog();
+            mission.saveSearchResultsToLog();
             std::cout<<"Results are saved (if chosen) via created log channel."<<std::endl;
         }
 

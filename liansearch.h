@@ -1,14 +1,13 @@
 #ifndef LIANSEARCH_H
 #define LIANSEARCH_H
 
-#include "sNode.h"
-#include "cList.h"
-#include "cMap.h"
-#include "cSearch.h"
+#include "node.h"
+#include "map.h"
+#include "search.h"
 #include <vector>
 #include <unordered_map>
 
-class LianSearch : public cSearch
+class LianSearch : public Search
 {
 
 public:
@@ -20,7 +19,7 @@ public:
                float linecost, float pivotRadius, int numOfParentsToIncreaseRadius, int breakingties);
 
     // ���������� �������� ������
-    SearchResult startSearch(cLogger *Log, const cMap &Map);
+    SearchResult startSearch(Logger *Log, const Map &Map);
 
 private:
 
@@ -69,12 +68,12 @@ private:
     std::vector< std::vector<Node> > circleNodes;
 
     // Vector of nodes (shifts) for pivot security check
-    std::vector<Node> pivotCircle;
+    std::vector<Cell> pivotCircle;
 
     std::vector<float> angles;
 
     // ����� Open + �������� ����
-    cList hppath, lppath;
+    std::list<Node> hppath, lppath;
 
     std::vector<open_cluster_t> open;
 
@@ -90,7 +89,7 @@ private:
 
     void calculatePivotCircle();
 
-    int calculatePreferableRadius(const cMap &Map);
+    int calculatePreferableRadius(const Map &map);
 
     void calculateDistances();
 
@@ -98,22 +97,22 @@ private:
     void deleteMin(const Node &min);
 
     // Draw discrete line between two nodes
-    void calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal);
+    void calculateLineSegment(std::list<Node> &line, const Node &start, const Node &goal);
 
     // Check if there are no obstacles on line between two nodes
-    bool checkLineSegment(const cMap &Map, const Node &start, const Node &goal);
+    bool checkLineSegment(const Map &map, const Node &start, const Node &goal);
 
     // check that there are no obstacle in a safety radius from a turn point
-    bool checkPivotCircle(const cMap &Map, const Node &center);
+    bool checkPivotCircle(const Map &map, const Node &center);
 
-    double calculateDistanceFromCellToCell(int start_i, int start_j, int fin_i, int fin_j);
+    double calculateDistanceFromCellToCell(Cell a, Cell b);
 
     bool stopCriterion();
 
     int tryToIncreaseRadius(Node curNode);
     bool tryToDecreaseRadius(Node &curNode, int width);
-    void findSuccessors(const Node curNode,std::vector<Node> &successors, const cMap &Map);
-    bool expand(const Node curNode, const cMap &Map);
+    void findSuccessors(const Node curNode,std::vector<Node> &successors, const Map &map);
+    bool expand(const Node curNode, const Map &map);
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
     double makeAngles(Node curNode);

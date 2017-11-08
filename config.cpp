@@ -1,13 +1,13 @@
-#include "cConfig.h"
+#include "config.h"
 #include <algorithm>
 #include <sstream>
 
-cConfig::cConfig() {
+Config::Config() {
     N = -1;
     searchParams = 0;
 }
 
-cConfig::cConfig(int numParams, float *paramArray) {
+Config::Config(int numParams, float *paramArray) {
     N = numParams;
     searchParams = new float[N];
 
@@ -16,13 +16,13 @@ cConfig::cConfig(int numParams, float *paramArray) {
     }
 }
 
-cConfig::~cConfig() {
+Config::~Config() {
     if (searchParams) {
         delete[] searchParams;
     }
 }
 
-bool cConfig::getConfig(const char *FileName) {
+bool Config::getConfig(const char *FileName) {
     std::string value;
     float angle;
     int distance;

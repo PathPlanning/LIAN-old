@@ -1,5 +1,5 @@
-#ifndef CCONFIG_H
-#define CCONFIG_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
 #include<iostream>
 #include"tinyxml.h"
@@ -8,15 +8,15 @@
 #include"gl_const.h"
 
 
-class cConfig
+class Config
 {
 public:
     float *searchParams;
     int N;
 public:
-    cConfig();
-    cConfig(int numParams, float *paramArray);
-    ~cConfig();
+    Config();
+    Config(int numParams, float *paramArray);
+    ~Config();
 
     bool getConfig(const char* FileName);
 };

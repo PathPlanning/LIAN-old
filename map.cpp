@@ -1,29 +1,40 @@
-#include"cMap.h"
-#include<string>
-#include<algorithm>
-#include <sstream>
+#include "map.h"
 
-cMap::cMap() {
-    height = -1;
-    width = -1;
-    start_i = -1;
-    start_j = -1;
-    goal_i = -1;
-    goal_j = -1;
-    Grid = 0;
-}
+Map::Map() { Grid = nullptr; }
 
-cMap::~cMap() {
+Map::~Map() {
     if (Grid) {
         for (int i = 0; i < height; i++) {
             delete[] Grid[i];
         }
-
         delete[] Grid;
     }
 }
 
-bool cMap::getMap(const char *FileName) {
+int * Map::operator [] (int i) {
+    return Grid[i];
+}
+const int * Map::operator [] (int i) const {
+    return Grid[i];
+}
+
+bool Map::CellIsTraversable(Cell curr) const
+{
+    return (Grid[curr.i][curr.j] != CN_OBSTL);
+}
+
+bool Map::CellIsObstacle(Cell curr) const
+{
+    return (Grid[curr.i][curr.j] == CN_OBSTL);
+}
+
+bool Map::CellOnGrid(Cell curr) const
+{
+    return (curr.i < height && curr.i >= 0 && curr.j < width && curr.j >= 0);
+}
+
+
+bool Map::getMap(const char *FileName) {
     const char *grid = 0;
     std::string value;
     TiXmlElement *root = 0;
@@ -91,44 +102,44 @@ bool cMap::getMap(const char *FileName) {
         } else if (value == CNS_TAG_SX) {
             text = element->GetText();
             stream << text;
-            stream >> start_j;
+            stream >> start.j;
             stream.clear();
             stream.str("");
 
-            if (start_j < 0 || start_j >= width) {
+            if (start.j < 0 || start.j >= width) {
                 std::cout << "Wrong '" << CNS_TAG_SX << "' value." << std::endl;
                 return false;
             }
         } else if (value == CNS_TAG_SY) {
             text = element->GetText();
             stream << text;
-            stream >> start_i;
+            stream >> start.i;
             stream.clear();
             stream.str("");
 
-            if (start_i < 0 || start_i >= height) {
+            if (start.i < 0 || start.i >= height) {
                 std::cout << "Wrong '" << CNS_TAG_SY << "' value." << std::endl;
                 return false;
             }
         } else if (value == CNS_TAG_FX) {
             text = element->GetText();
             stream << text;
-            stream >> goal_j;
+            stream >> goal.j;
             stream.clear();
             stream.str("");
 
-            if (goal_j < 0 || goal_j >= width) {
+            if (goal.j < 0 || goal.j >= width) {
                 std::cout << "Wrong '" << CNS_TAG_FX << "' value." << std::endl;
                 return false;
             }
         } else if (value == CNS_TAG_FY) {
             text = element->GetText();
             stream << text;
-            stream >> goal_i;
+            stream >> goal.i;
             stream.clear();
             stream.str("");
 
-            if (goal_i < 0 || goal_i >= height) {
+            if (goal.i < 0 || goal.i >= height) {
                 std::cout << "Wrong '" << CNS_TAG_FY << "' value." << std::endl;
                 return false;
             }

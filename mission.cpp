@@ -1,27 +1,27 @@
-#include"cMission.h"
+#include"mission.h"
 #include <ios>
 #include <iomanip>
 
-cMission::cMission(const char *fName) {
+Mission::Mission(const char *fName) {
     m_fileName = fName;
     m_pSearch = 0;
     m_pLogger = 0;
 }
 
-cMission::~cMission() {
+Mission::~Mission() {
     delete m_pSearch;
     delete m_pLogger;
 }
 
-bool cMission::getMap() {
+bool Mission::getMap() {
     return m_map.getMap(m_fileName);
 }
 
-bool cMission::getConfig() {
+bool Mission::getConfig() {
     return m_config.getConfig(m_fileName);
 }
 
-void cMission::createSearch() {
+void Mission::createSearch() {
     m_pSearch = new LianSearch(
             (float) m_config.searchParams[CN_PT_AL],
             (int) m_config.searchParams[CN_PT_D],
@@ -38,12 +38,12 @@ void cMission::createSearch() {
     );
 }
 
-bool cMission::createLog() {
+bool Mission::createLog() {
     if (m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_LOW || m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_HIGH
         || m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_MED) {
-        m_pLogger = new cXmlLogger(m_config.searchParams[CN_PT_LOGLVL]);
+        m_pLogger = new XmlLogger(m_config.searchParams[CN_PT_LOGLVL]);
     } else if (m_config.searchParams[CN_PT_LOGLVL] == CN_LOGLVL_NO) {
-        m_pLogger = new cXmlLogger(m_config.searchParams[CN_PT_LOGLVL]);
+        m_pLogger = new XmlLogger(m_config.searchParams[CN_PT_LOGLVL]);
 
         return true;
     } else {
@@ -54,11 +54,11 @@ bool cMission::createLog() {
     return m_pLogger->getLog(m_fileName);
 }
 
-void cMission::startSearch() {
+void Mission::startSearch() {
     sr = m_pSearch->startSearch(m_pLogger, m_map);
 }
 
-void cMission::printSearchResultsToConsole() {
+void Mission::printSearchResultsToConsole() {
     std::cout << "Path ";
     if (!sr.pathfound)
         std::cout << "NOT ";
@@ -72,7 +72,7 @@ void cMission::printSearchResultsToConsole() {
               << std::defaultfloat;
 }
 
-void cMission::saveSearchResultsToLog() {
+void Mission::saveSearchResultsToLog() {
     m_pLogger->writeToLogSummary(sr.hppath, sr.numberofsteps, sr.nodescreated, sr.pathlength, sr.time, sr.maxAngle,
                                  sr.sections);
 

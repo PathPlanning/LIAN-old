@@ -42,7 +42,7 @@
         <hweight>1</hweight>
         <anglelimit>45</anglelimit>
         <distance>5</distance>
-        <pivotCircleRadius>3</pivotCircleRadius>
+        <checkLesserCircle>0</checkLesserCircle>
     </algorithm>
     <options>
         <loglevel>1</loglevel>

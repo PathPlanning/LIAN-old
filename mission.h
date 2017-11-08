@@ -1,19 +1,19 @@
 #ifndef CMISSION_H
 #define CMISSION_H
 
-#include"cMap.h"
-#include"cConfig.h"
-#include"cSearch.h"
-#include<string>
+#include "map.h"
+#include "config.h"
+#include "search.h"
+#include <string>
 #include "liansearch.h"
-#include"cXmlLogger.h"
+#include "xml_logger.h"
 #include "searchresult.h"
 
-class cMission
+class Mission
 {
 public:
-    cMission(const char* fName);
-    ~cMission();
+    Mission(const char* fName);
+    ~Mission();
 
     bool getMap();
     bool getConfig();
@@ -24,11 +24,11 @@ public:
     void saveSearchResultsToLog();
 
 private:
-    cMap    m_map;
-    cConfig m_config;
+    Map    m_map;
+    Config m_config;
 
-    cSearch *m_pSearch;
-    cLogger *m_pLogger;
+    Search *m_pSearch;
+    Logger *m_pLogger;
 
     const char* m_fileName;
 

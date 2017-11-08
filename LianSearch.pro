@@ -17,25 +17,22 @@ SOURCES += main.cpp \
     tinyxmlerror.cpp \
     tinyxml.cpp \
     tinystr.cpp \
-    cXmlLogger.cpp \
-    cMission.cpp \
-    cMap.cpp \
-    cLogger.cpp \
-    cList.cpp \
-    cConfig.cpp \
-    liansearch.cpp
+    liansearch.cpp \
+    xml_logger.cpp \
+    mission.cpp \
+    map.cpp \
+    config.cpp
 
 HEADERS += \
     tinyxml.h \
     tinystr.h \
-    sNode.h \
     searchresult.h \
     gl_const.h \
-    cXmlLogger.h \
-    cSearch.h \
-    cMission.h \
-    cMap.h \
-    cLogger.h \
-    cList.h \
-    cConfig.h \
-    liansearch.h
+    liansearch.h \
+    config.h \
+    logger.h \
+    xml_logger.h \
+    mission.h \
+    search.h \
+    map.h \
+    node.h

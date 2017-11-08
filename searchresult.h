@@ -1,14 +1,14 @@
 #ifndef SEARCHRESULT_H
 #define SEARCHRESULT_H
 
-#include "cList.h"
 #include <vector>
+#include "node.h"
 
 struct SearchResult
 {
         bool pathfound;
         float pathlength;
-        cList hppath,lppath;
+        std::list<Node> hppath,lppath;
         unsigned int nodescreated;
         unsigned int numberofsteps;
         std::vector<float> angles;
@@ -20,8 +20,8 @@ struct SearchResult
         {
             pathfound = false;
             pathlength = 0;
-            hppath.List.clear();
-            lppath.List.clear();
+            hppath.clear();
+            lppath.clear();
             angles.clear();
             nodescreated = 0;
             numberofsteps = 0;
