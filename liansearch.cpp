@@ -274,7 +274,7 @@ bool LianSearch::checkLineSegment(const Map &map, const Node &start, const Node 
                 if (map.CellIsObstacle(x, y2)) return false;
                 StepVal += dy;
                 if (StepVal >= dx){
-                    y--;
+                    --y2;
                     StepVal -= dx;
                 }
             }
