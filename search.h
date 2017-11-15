@@ -1,19 +1,18 @@
-#ifndef CSEARCH_H
-#define CSEARCH_H
+#ifndef SEARCH_H
+#define SEARCH_H
 
-#include "map.h"
-#include "logger.h"
-#include "xml_logger.h"
 #include "gl_const.h"
+#include "logger.h"
+#include "map.h"
 #include "searchresult.h"
+#include "xmllogger.h"
 
-class Search
-{
+class Search {
+
 public:
     Search() {}
-    virtual ~Search() {}
-    virtual void addOpen(Node& newNode) = 0;
-    virtual SearchResult startSearch(Logger *Log, const Map &Map) = 0;
+    virtual ~Search () {}
+    virtual SearchResult startSearch(Logger *Log, const Map &map) = 0;
 
     SearchResult sresult;
 };

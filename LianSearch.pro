@@ -3,6 +3,7 @@
 # Project created by QtCreator 2014-08-11T16:11:48
 #
 #-------------------------------------------------
+#refactoring process
 
 TARGET = LianSearch
 CONFIG   += console
@@ -18,10 +19,11 @@ SOURCES += main.cpp \
     tinyxml.cpp \
     tinystr.cpp \
     liansearch.cpp \
-    xml_logger.cpp \
-    mission.cpp \
+    openlist.cpp \
+    config.cpp \
     map.cpp \
-    config.cpp
+    mission.cpp \
+    xmllogger.cpp
 
 HEADERS += \
     tinyxml.h \
@@ -29,10 +31,11 @@ HEADERS += \
     searchresult.h \
     gl_const.h \
     liansearch.h \
+    node.h \
+    openlist.h \
     config.h \
+    map.h \
     logger.h \
-    xml_logger.h \
     mission.h \
     search.h \
-    map.h \
-    node.h
+    xmllogger.h

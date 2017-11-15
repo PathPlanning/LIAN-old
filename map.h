@@ -1,38 +1,40 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <algorithm>
-
 #include "gl_const.h"
-#include "node.h"
 #include "tinyxml.h"
 #include "tinystr.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-class Map
-{
-public: 
+
+class Map {
+
+private:
+    int ** Grid;
+    int height, width;
+
+public:
     Map();
     ~Map();
     bool getMap(const char* FileName);
 
-    bool CellIsTraversable (Cell curr) const;
-    bool CellOnGrid (Cell curr) const;
-    bool CellIsObstacle(Cell cur) const;
+    bool CellIsTraversable (int curr_i, int curr_j) const;
+    bool CellOnGrid (int curr_i, int curr_j) const;
+    bool CellIsObstacle(int curr_i, int curr_j) const;
 
     int* operator [] (int i);
     const int* operator [] (int i) const;
 
-    int height, width;
-    Cell start;
-    Cell goal;
+    int getWidth() const;
+    int getHeight() const;
 
-private:
-    int ** Grid;
 
+    int start_i, start_j;
+    int goal_i, goal_j;
 };
 
 #endif

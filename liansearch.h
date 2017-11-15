@@ -1,113 +1,95 @@
 #ifndef LIANSEARCH_H
 #define LIANSEARCH_H
 
-#include "node.h"
+#include "gl_const.h"
 #include "map.h"
+#include "node.h"
+#include "openlist.h"
 #include "search.h"
-#include <vector>
-#include <unordered_map>
 
-class LianSearch : public Search
-{
+#include <chrono>
+#include <cmath>
+#include <list>
+#include <limits>
+#include <unordered_map>
+#include <vector>
+
+class LianSearch : public Search {
 
 public:
 
-    // ����������� � �����������:
-    LianSearch(float angleLimit, int distance, float weight,
-               unsigned int steplimit, float circleRadiusFactor, float curvatureHeuristicWeight,
-               float decreaseDistanceFactor, int distanceMin,
-               float linecost, float pivotRadius, int numOfParentsToIncreaseRadius, int breakingties);
+    // Constructor with parameters
+    LianSearch(float angleLimit, int distance, float weight, int breakingties,
+               unsigned int steplimit, float curvatureHeuristicWeight,
+               float decreaseDistanceFactor, int distanceMin, double PivotRadius, int numOfParentsToIncreaseRadius);
 
-    // ���������� �������� ������
-    SearchResult startSearch(Logger *Log, const Map &Map);
+    ~LianSearch();
+    SearchResult startSearch(Logger *Log, const Map &map); // General searching algorithm
 
 private:
 
-    typedef std::list<Node> open_cluster_t;
-    // ������������ ���� ����������
-    float angleLimit;
+    float angleLimit; // Maximal value of deviation angle (turning limit)
 
-    // ����������� ��������� ����
-    int distance;
+    int distance; // Minimal value of length of steps
 
     int numOfParentsToIncreaseRadius;
 
     std::vector<int> listOfDistances;
     int listOfDistancesSize;
 
-    // Heuristic weight
-    float weight;
+    float weight;  // Heuristics weight
 
-    int breakingties;
+    int BT;
 
-    // ������ ������������� �����������
-    // ���� ����������� ��������������� ������� ����� ������������ ����������
-    // ������������ �������, ������� ������� ����������� �� ���� �����������
+    // heurisic coefficient:
+    // During check for position of goal cell in the circle with minimal radius,
+    // squared radius is multiplied by this coefficient
     float circleRadiusFactor;
 
-    // ��� ���� ������������� �����������
-    // ���� ������������ ���������, ��������������� ���������� ���������� �� ������
-    // �� ������ ����, �� ����������� �������� ���������� �� ���� �����������
+    // Heurisic coefficient:
+    // If there is heuristic that checks deviation of trajectory from line on each
+    // step, this deviation is multiplyed by this coefficient
     float curvatureHeuristicWeight;
-
-    float linecost; // cost of straight move between two neighbour (be edge) cells
 
     float pivotRadius; // Radius of safety circle around every turn point.
 
-    // Limit of steps made by the algorithm
-    unsigned int stepLimit;
+    unsigned int stepLimit; // Maximum number of iterations, allowed for the algorithm
 
-    // Sizes of open and close sets
-    unsigned int closeSize, openSize;
+    unsigned int closeSize; // Number of elements in close (elements that were already examined)
 
-    // the factor, on which DLIAN tries to decrease path section length
-    float decreaseDistanceFactor;
-    int distanceMin;
+    float decreaseDistanceFactor; // Value for decreasing the initial distance value
+    int distanceMin; // Minimal distance value
 
-    // precomputed shifts of circles for every distance
-    std::vector< std::vector<Node> > circleNodes;
+    std::vector< std::vector<Node> > circleNodes; // Virtual nodes that create circle around the cell
 
-    // Vector of nodes (shifts) for pivot security check
-    std::vector<Cell> pivotCircle;
+    std::vector<Node> pivotCircle;  // Vector of nodes (shifts) for pivot security check
 
     std::vector<float> angles;
 
-    // ����� Open + �������� ����
-    std::list<Node> hppath, lppath;
+    std::list<Node> lppath, hppath; // Final path in two representations
+    OpenList open; // Open : list of nodes waiting for expanding
 
-    std::vector<open_cluster_t> open;
+    std::unordered_multimap<int, Node> close; // Close: list of nodes that were already expanded
 
-    std::vector<unsigned> cluster_minimums;
-    size_t global_minimum;
-
-    std::unordered_multimap<int, Node> close;
-
-    void addOpen(Node &newNode);
-
-    // Precompute shifts for every distance circle
-    void calculateCircle(int radius);
+    // Method that calculate Bresenham's Circle (center - (0, 0)) and writing list of created nodes to circleNodes
+    void calculateCircle(int radius); // Radius - radius of the circle in cells
 
     void calculatePivotCircle();
 
-    int calculatePreferableRadius(const Map &map);
+    int calculatePreferableRadius(const Map &map); // Method calculates the most preferable radius depending on the parameters of the initial map
 
     void calculateDistances();
 
-    Node findMin();
-    void deleteMin(const Node &min);
+    void calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal); // Method builds Bresenham's Line
 
-    // Draw discrete line between two nodes
-    void calculateLineSegment(std::list<Node> &line, const Node &start, const Node &goal);
-
-    // Check if there are no obstacles on line between two nodes
-    bool checkLineSegment(const Map &map, const Node &start, const Node &goal);
+    bool checkLineSegment(const Map &map, const Node &start, const Node &goal); // Method builds Bresenham's Line and check it for impassable parts
 
     // check that there are no obstacle in a safety radius from a turn point
     bool checkPivotCircle(const Map &map, const Node &center);
 
-    double calculateDistanceFromCellToCell(Cell a, Cell b);
+    double getCost(int a_i, int a_j, int b_i, int b_j);
 
-    bool stopCriterion();
+    bool stopCriterion(); // Check for the ending criteria. Return true if the algorithm should be stopped
 
     int tryToIncreaseRadius(Node curNode);
     bool tryToDecreaseRadius(Node &curNode, int width);
