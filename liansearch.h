@@ -95,6 +95,8 @@ private:
     bool tryToDecreaseRadius(Node &curNode, int width);
     void findSuccessors(const Node curNode,std::vector<Node> &successors, const Map &map);
     bool expand(const Node curNode, const Map &map);
+    bool checkAngle(Node dad, Node node, Node son);
+    std::list<Node> smoothPath(const std::list<Node>& path, const Map& map);
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
     double makeAngles(Node curNode);

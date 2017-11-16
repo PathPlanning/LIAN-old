@@ -423,6 +423,7 @@ SearchResult LianSearch::startSearch(Logger *Log, const Map &map) {
     if (pathFound) {
         float max_angle = makeAngles(curNode);
         makePrimaryPath(curNode);
+        //hppath = smoothPath(hppath, map);
         makeSecondaryPath(curNode);
         sresult.pathfound = true;
         sresult.pathlength = curNode.g;
@@ -610,14 +611,57 @@ void LianSearch::makePrimaryPath(Node curNode) {
     hppath.push_front(curNode);
 }
 
+
+bool LianSearch::checkAngle(Node dad, Node node, Node son) {
+    double cos_angle = (node.j - dad.j) * (son.j - node.j) +
+                       (node.i - dad.i) * (son.i - node.i);
+    cos_angle /= getCost(son.i, son.j, node.i, node.j);
+    cos_angle /= getCost(node.i, node.j, dad.i, dad.j);
+    if (acos(cos_angle) <= angleLimit) {
+        return true;
+    }
+    return false;
+}
+
+std::list<Node> LianSearch::smoothPath(const std::list<Node>& path, const Map& map) {
+    std::list<Node> new_path;
+    auto it = path.begin();
+    auto curr_it = path.begin();
+    Node start_section = *it;
+    Node end_section = *it;
+    bool first = true;
+    Node previous;
+    ++it;
+    while (end_section != path.back()) {
+        for (it; it != path.end(); ++it) {
+            Node next = *(++it);
+            --it;
+            if (!first && !checkAngle(previous, start_section, *it)) continue;
+            if (checkAngle(start_section, *it, next) && checkLineSegment(map, start_section, *it)) {
+                end_section = *it;
+                curr_it = it;
+            }
+        }
+        new_path.push_back(start_section);
+        previous = start_section;
+        first = false;
+        start_section = end_section;
+        it = ++curr_it;
+    }
+    new_path.push_back(end_section);
+    return new_path;
+}
+
 void LianSearch::makeSecondaryPath(Node curNode) {
     std::vector<Node> lineSegment;
-    do {
-        calculateLineSegment(lineSegment, *curNode.parent, curNode);
+    auto it = hppath.begin();
+    Node parent = *it++;
+    while (it != hppath.end()) {
+        calculateLineSegment(lineSegment, parent, *it);
         lppath.insert(lppath.begin(), ++lineSegment.begin(), lineSegment.end());
-        curNode = *curNode.parent;
-    } while (curNode.parent != nullptr);
-    lppath.push_front(*lineSegment.begin());
+        parent = *it++;
+    }
+    lppath.push_front(*hppath.begin());
 }
 
 double LianSearch::makeAngles(Node curNode) {

@@ -178,7 +178,6 @@ bool Config::getConfig(const char* FileName) {
         }
         searchParams[CN_PT_CHW] = curvatureHeuriscitWeight;
 
-
         element = algorithm->FirstChildElement(CNS_TAG_DECRDISTFACTOR);
         if (!element) {
             std::cout << "No '" << CNS_TAG_DECRDISTFACTOR << "' element found inside '" << CNS_TAG_ALGORITHM
