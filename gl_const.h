@@ -18,8 +18,9 @@
 #define CN_PT_DM        8   // distancemin
 #define CN_PT_PC        11  // pivot circle value
 #define CN_PT_NOP       12  // number of parents to increase radius
+#define CN_PT_PS        13  // post smoother
 
-#define CN_PT_NUM       13  // number of parameters
+#define CN_PT_NUM       14  // number of parameters
 
 
 //Default values of parameters
@@ -68,6 +69,7 @@
     #define CNS_TAG_BREAKINGTIE     "breakingties"
     #define CNS_TAG_STEPLIMIT       "steplimit"
     #define CNS_TAG_CURVHEURWEIGHT  "curvatureHeuristicWeight"
+    #define CNS_TAG_SMOOTHER        "postsmoother"
     #define CNS_TAG_PIVOTCIRCLE     "pivotCircleRadius"
     #define CNS_TAG_DISTANCEMIN     "distanceMin"
     #define CNS_TAG_DECRDISTFACTOR  "decreaseDistanceFactor"

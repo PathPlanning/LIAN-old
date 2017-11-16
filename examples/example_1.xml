@@ -43,6 +43,8 @@
         <anglelimit>45</anglelimit>
         <distance>5</distance>
         <checkLesserCircle>0</checkLesserCircle>
+	<postsmoother>1</postsmoother>
+	<curvatureHeuristicWeight>0.5</curvatureHeuristicWeight>
     </algorithm>
     <options>
         <loglevel>1</loglevel>

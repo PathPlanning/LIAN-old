@@ -3,20 +3,21 @@
 LianSearch::~LianSearch() {}
 
 
-LianSearch::LianSearch(float angleLimit, int distance, float weight, int breakingties,
-                       unsigned int steplimit, float curvatureHeuristicWeight,
-                       float decreaseDistanceFactor, int distanceMin,
-                       double PivotRadius, int numOfParentsToIncreaseRadius) {
-    this->angleLimit = angleLimit;
-    this->distance = distance;
-    this->weight = weight;
-    this->BT = breakingties;
-    this->stepLimit = steplimit;
-    this->curvatureHeuristicWeight = curvatureHeuristicWeight;
-    this->decreaseDistanceFactor = decreaseDistanceFactor;
-    this->distanceMin = distanceMin;
-    this->pivotRadius = PivotRadius;
-    this->numOfParentsToIncreaseRadius = numOfParentsToIncreaseRadius;
+LianSearch::LianSearch(float angleLimit_, int distance_, float weight_, int breakingties_,
+                       unsigned int steplimit_, float curvatureHeuristicWeight_, bool postsmoother_,
+                       float decreaseDistanceFactor_, int distanceMin_,
+                       double PivotRadius_, int numOfParentsToIncreaseRadius_) {
+    this->angleLimit = angleLimit_;
+    this->distance = distance_;
+    this->weight = weight_;
+    this->BT = breakingties_;
+    this->stepLimit = steplimit_;
+    this->curvatureHeuristicWeight = curvatureHeuristicWeight_;
+    this->postsmoother = postsmoother_;
+    this->decreaseDistanceFactor = decreaseDistanceFactor_;
+    this->distanceMin = distanceMin_;
+    this->pivotRadius = PivotRadius_;
+    this->numOfParentsToIncreaseRadius = numOfParentsToIncreaseRadius_;
     closeSize = 0;
 }
 
@@ -423,7 +424,7 @@ SearchResult LianSearch::startSearch(Logger *Log, const Map &map) {
     if (pathFound) {
         float max_angle = makeAngles(curNode);
         makePrimaryPath(curNode);
-        //hppath = smoothPath(hppath, map);
+        if (postsmoother) hppath = smoothPath(hppath, map);
         makeSecondaryPath(curNode);
         sresult.pathfound = true;
         sresult.pathlength = curNode.g;

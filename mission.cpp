@@ -17,15 +17,16 @@ bool Mission::getConfig() {
 
 void Mission::createSearch() {
     search = new LianSearch((float)config.getParamValue(CN_PT_AL),
-                             (int)config.getParamValue(CN_PT_D),
-                             (float)config.getParamValue(CN_PT_W),
-                             (int)config.getParamValue(CN_PT_BT),
-                             (unsigned int)config.getParamValue(CN_PT_SL),
-                             (float)config.getParamValue(CN_PT_CHW),
-                             (float)config.getParamValue(CN_PT_DDF),
-                             (int)config.getParamValue(CN_PT_DM),
-                             (bool)config.getParamValue(CN_PT_PC),
-                             (int)config.getParamValue(CN_PT_NOP));
+                            (int)config.getParamValue(CN_PT_D),
+                            (float)config.getParamValue(CN_PT_W),
+                            (int)config.getParamValue(CN_PT_BT),
+                            (unsigned int)config.getParamValue(CN_PT_SL),
+                            (float)config.getParamValue(CN_PT_CHW),
+                            (bool)config.getParamValue(CN_PT_PS),
+                            (float)config.getParamValue(CN_PT_DDF),
+                            (int)config.getParamValue(CN_PT_DM),
+                            (bool)config.getParamValue(CN_PT_PC),
+                            (int)config.getParamValue(CN_PT_NOP));
 }
 
 bool Mission::createLog() {

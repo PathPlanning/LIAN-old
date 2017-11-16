@@ -34,6 +34,7 @@ bool Config::getConfig(const char* FileName) {
     float decreaseDistance;
     int distanceMin;
     int numOfParentsToIncreaseRadius;
+    bool postsmoother;
     std::stringstream stream;
 
     TiXmlDocument doc(FileName);
@@ -177,6 +178,20 @@ bool Config::getConfig(const char* FileName) {
             stream.str("");
         }
         searchParams[CN_PT_CHW] = curvatureHeuriscitWeight;
+
+        element = algorithm->FirstChildElement(CNS_TAG_SMOOTHER);
+        if (!element) {
+            std::cout << "No '" << CNS_TAG_SMOOTHER << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. It's compared to 0." << std::endl;
+            postsmoother = 0;
+        } else {
+            value = element->GetText();
+            stream << value;
+            stream >> postsmoother;
+            stream.clear();
+            stream.str("");
+        }
+        searchParams[CN_PT_PS] = postsmoother;
 
         element = algorithm->FirstChildElement(CNS_TAG_DECRDISTFACTOR);
         if (!element) {
