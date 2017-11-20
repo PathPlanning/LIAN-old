@@ -27,8 +27,9 @@ public:
     TiXmlElement *writeToXml(TiXmlElement * element) const;
 
 private:
-    std::vector<std::list<Node> > elements;
+    std::list<Node> *elements;
     size_t size;
+    size_t height;
     int bt;
 };
 

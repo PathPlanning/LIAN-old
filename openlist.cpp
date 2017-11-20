@@ -3,19 +3,21 @@
 OpenList::OpenList() { size = 0; }
 
 OpenList::OpenList(int size_, int BT) {
-    elements.resize(size_);
+    elements = new std::list<Node>[size_];
     size = 0;
+    height = size_;
     bt = BT;
 }
 
 void OpenList::resize(int size_, int BT) {
-    elements.resize(size_);
+    elements = new std::list<Node>[size_];
+    height = size_;
     size = 0;
     bt = BT;
 }
 
 OpenList::~OpenList() {
-    for (auto elem : elements) elem.clear();
+    delete [] elements;
 }
 
 size_t OpenList::get_size() const {
@@ -64,7 +66,7 @@ void OpenList::add(Node new_node) {
 Node OpenList::getMin() {
     Node min;
     min.F = std::numeric_limits<double>::infinity();
-    for(size_t i = 0; i < elements.size(); ++i) {
+    for(size_t i = 0; i < height; ++i) {
         if(!elements[i].empty() && elements[i].front().lesser(min, bt)) {
             min.i = elements[i].front().i;
             min.j = elements[i].front().j;
@@ -86,7 +88,7 @@ TiXmlElement * OpenList::writeToXml(TiXmlElement * element) const {
     Node min;
     min.F = std::numeric_limits<double>::infinity();
     int exc = 0;
-    for(size_t i = 0; i < elements.size(); ++i) {
+    for(size_t i = 0; i < height; ++i) {
         if(!elements[i].empty() && elements[i].front().lesser(min, bt)) {
             min = elements[i].front();
             exc = i;
@@ -101,7 +103,7 @@ TiXmlElement * OpenList::writeToXml(TiXmlElement * element) const {
         element -> SetAttribute(CNS_TAG_ATTR_PARX, min.parent->j);
         element -> SetAttribute(CNS_TAG_ATTR_PARY, min.parent->i);
     }
-    for(size_t i = 0; i < elements.size(); ++i) {
+    for(size_t i = 0; i < height; ++i) {
         if(elements[i].empty()) {
             for (auto it = elements[i].begin(); it != elements[i].end(); ++it) {
                 if(it != elements[exc].begin()) {

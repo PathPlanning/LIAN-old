@@ -1,5 +1,11 @@
 #include "liansearch.h"
 
+#ifdef __linux__
+    #include <sys/time.h>
+#else
+    #include <windows.h>
+#endif
+
 LianSearch::~LianSearch() {}
 
 
@@ -19,6 +25,7 @@ LianSearch::LianSearch(float angleLimit_, int distance_, float weight_, int brea
     this->pivotRadius = PivotRadius_;
     this->numOfParentsToIncreaseRadius = numOfParentsToIncreaseRadius_;
     closeSize = 0;
+    srand(time(NULL));
 }
 
 void LianSearch::calculateCircle(int radius) { //here radius - radius of the circle in cells
@@ -360,7 +367,7 @@ bool LianSearch::checkLineSegment(const Map &map, const Node &start, const Node 
 
 bool LianSearch::stopCriterion()
 {
-    if(open.is_empty()) {
+    if(open.get_size() == 0) {
         std::cout << "OPEN list is empty!" << std::endl;
         return true;
     }
@@ -377,8 +384,14 @@ double LianSearch::getCost(int a_i, int a_j, int b_i, int b_j) {
 }
 
 SearchResult LianSearch::startSearch(Logger *Log, const Map &map) {
-    std::chrono::time_point<std::chrono::system_clock> time_start, time_end;
-    time_start = std::chrono::system_clock::now();
+    #ifdef __linux__
+        timeval begin, end;
+        gettimeofday(&begin, NULL);
+    #else
+        LARGE_INTEGER begin,end,freq;
+        QueryPerformanceCounter(&begin);
+        QueryPerformanceFrequency(&freq);
+    #endif
 
     calculateDistances();
 
@@ -417,8 +430,14 @@ SearchResult LianSearch::startSearch(Logger *Log, const Map &map) {
     }
     if(Log->loglevel==CN_LOGLVL_MED) Log->writeToLogOpenClose(open, close, map.getHeight());
 
-    time_end = std::chrono::system_clock::now();
-    sresult.time = static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(time_end - time_start).count()) / 1000000000;
+    #ifdef __linux__
+        gettimeofday(&end, NULL);
+        sresult.time = (end.tv_sec - begin.tv_sec) + static_cast<double>(end.tv_usec - begin.tv_usec) / 1000000;
+    #else
+        QueryPerformanceCounter(&end);
+        sresult.time = static_cast<double long>(end.QuadPart-begin.QuadPart) / freq.QuadPart;
+    #endif
+
     sresult.nodescreated = open.get_size() + closeSize;
     sresult.numberofsteps = closeSize;
     if (pathFound) {
