@@ -136,7 +136,7 @@ void cXmlLogger::writeToLogMap(const Map &map, const std::list<Node> &path)
     delete[] curLine;
 }
 
-void cXmlLogger::writeToLogOpenClose(const OpenList open, const std::unordered_multimap<int, Node>& close, const int size)
+void cXmlLogger::writeToLogOpenClose(const OpenList &open, const std::unordered_multimap<int, Node>& close, const int size)
 {
 
     if (loglevel == CN_LOGLVL_NO || loglevel == CN_LOGLVL_HIGH) return;
@@ -157,8 +157,7 @@ void cXmlLogger::writeToLogOpenClose(const OpenList open, const std::unordered_m
     lowlevel -> InsertEndChild(*element);
     child = lowlevel -> LastChild();
 
-    element = open.writeToXml(element);
-    child -> InsertEndChild(*element);
+    element = open.writeToXml(element, child);
 
     element = new TiXmlElement (CNS_TAG_CLOSE);
     lowlevel -> InsertEndChild(*element);

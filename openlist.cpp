@@ -82,7 +82,7 @@ Node OpenList::getMin() {
     return min;
 }
 
-TiXmlElement * OpenList::writeToXml(TiXmlElement * element) const {
+TiXmlElement * OpenList::writeToXml(TiXmlElement * element, TiXmlNode * child) const {
     Node min;
     min.F = std::numeric_limits<double>::infinity();
     int exc = 0;
@@ -100,6 +100,7 @@ TiXmlElement * OpenList::writeToXml(TiXmlElement * element) const {
         element -> SetDoubleAttribute(CNS_TAG_ATTR_G, min.g);
         element -> SetAttribute(CNS_TAG_ATTR_PARX, min.parent->j);
         element -> SetAttribute(CNS_TAG_ATTR_PARY, min.parent->i);
+        child -> InsertEndChild(*element);
     }
     for(size_t i = 0; i < height; ++i) {
         if(elements[i].empty()) {
@@ -114,6 +115,7 @@ TiXmlElement * OpenList::writeToXml(TiXmlElement * element) const {
                         element -> SetAttribute(CNS_TAG_ATTR_PARX, it->parent->j);
                         element -> SetAttribute(CNS_TAG_ATTR_PARY, it->parent->i);
                     }
+                    child->InsertEndChild(*element);
                 }
             }
         }
