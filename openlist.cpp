@@ -39,20 +39,12 @@ void OpenList::add(Node new_node) {
     bool pos_found = false;
 
     for(auto it = elements[new_node.i].begin(); it != elements[new_node.i].end(); ++it) {
-<<<<<<< HEAD
         if ((it->F >= new_node.F) && (!pos_found)) {
-=======
-        if ((!it->lesser(new_node, bt)) && (!pos_found)) {
->>>>>>> 2a31bab6b1d8b37f78f8338abd0ffd7821caf7e3
             pos = it;
             pos_found = true;
         }
         if (*it == new_node) {
-<<<<<<< HEAD
             if (new_node.F >= it->F) return;
-=======
-            if (!new_node.lesser(*it, bt)) return;
->>>>>>> 2a31bab6b1d8b37f78f8338abd0ffd7821caf7e3
             else {
                 if(pos == it) {
                     it->g = new_node.g;
@@ -74,7 +66,6 @@ void OpenList::add(Node new_node) {
 Node OpenList::getMin() {
     Node min;
     min.F = std::numeric_limits<double>::infinity();
-<<<<<<< HEAD
     for(size_t i = 0; i < height; i++) {
         if(!elements[i].empty() && elements[i].begin()->F <= min.F) {
             if (elements[i].begin()->F == min.F) {
@@ -90,26 +81,6 @@ Node OpenList::getMin() {
     --size;
     return min;
 }
-
-=======
-    for(size_t i = 0; i < height; ++i) {
-        if(!elements[i].empty() && elements[i].front().lesser(min, bt)) {
-            min.i = elements[i].front().i;
-            min.j = elements[i].front().j;
-            min = elements[i].front();
-        }
-    }
-    return min;
-}
-
-void OpenList::pop(Node min) {
-    if (!elements[min.i].empty()) {
-        elements[min.i].pop_front();
-        --size;
-    }
-}
-
->>>>>>> 2a31bab6b1d8b37f78f8338abd0ffd7821caf7e3
 
 TiXmlElement * OpenList::writeToXml(TiXmlElement * element) const {
     Node min;
