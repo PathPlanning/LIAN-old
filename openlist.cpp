@@ -31,7 +31,7 @@ bool OpenList::is_empty() const {
 
 void OpenList::add(Node new_node) {
     if (elements[new_node.i].empty()) {
-        elements[new_node.i].emplace_back(new_node);
+        elements[new_node.i].push_back(new_node);
         ++size;
         return;
     }
@@ -60,12 +60,12 @@ void OpenList::add(Node new_node) {
         }
     }
     ++size;
-    elements[new_node.i].emplace(pos,new_node);
+    elements[new_node.i].insert(pos,new_node);
 }
 
 Node OpenList::getMin() {
     Node min;
-    min.F = std::numeric_limits<double>::infinity();
+    min.F = std::numeric_limits<float>::infinity();
     for(size_t i = 0; i < height; i++) {
         if(!elements[i].empty() && elements[i].begin()->F <= min.F) {
             if (elements[i].begin()->F == min.F) {
@@ -84,7 +84,7 @@ Node OpenList::getMin() {
 
 TiXmlElement * OpenList::writeToXml(TiXmlElement * element, TiXmlNode * child) const {
     Node min;
-    min.F = std::numeric_limits<double>::infinity();
+    min.F = std::numeric_limits<float>::infinity();
     int exc = 0;
     for(size_t i = 0; i < height; ++i) {
         if(!elements[i].empty() && elements[i].front().lesser(min, bt)) {
@@ -92,7 +92,7 @@ TiXmlElement * OpenList::writeToXml(TiXmlElement * element, TiXmlNode * child) c
             exc = i;
         }
     }
-    if(min.F != std::numeric_limits<double>::infinity()) {
+    if(min.F != std::numeric_limits<float>::infinity()) {
         element = new TiXmlElement(CNS_TAG_NODE);
         element -> SetAttribute(CNS_TAG_ATTR_X, min.j);
         element -> SetAttribute(CNS_TAG_ATTR_Y, min.i);
