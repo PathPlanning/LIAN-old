@@ -9,13 +9,14 @@
 
 
 struct Node {
-    int     i, j;
-    float  F;
-    float  g;
-    Node*   parent;
-    bool    pathToParent;
-    int     radius;
 
+    Node*   parent;
+
+    bool    pathToParent;
+    int     i, j;
+    int     radius;
+    float   F;
+    float   g;
     float   c; // curvature euristic component
 
     Node() : i(-1), j(-1), F(std::numeric_limits<float>::infinity()), g(std::numeric_limits<float>::infinity()),
@@ -49,8 +50,8 @@ struct Node {
     }
 
     bool lesser(const Node another, int BT) const {
-        return F < another.F || (F == another.F && (BT == CN_BT_GMAX && g > another.g ||
-                                                    BT == CN_BT_GMIN && g < another.g));
+        return F < another.F || (F == another.F && ((BT == CN_BT_GMAX && g > another.g) ||
+                                                    (BT == CN_BT_GMIN && g < another.g)));
     }
 
     int convolution(int width) const {

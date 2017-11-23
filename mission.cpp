@@ -54,13 +54,16 @@ void Mission::printSearchResultsToConsole() {
     std::cout << "found!" << std::endl;
     std::cout << "nodescreated=" << sr.nodescreated << std::endl;
     std::cout << "numberofsteps=" << sr.numberofsteps << std::endl;
-    if (sr.pathfound)
+    if (sr.pathfound) {
         std::cout << "pathlength=" << sr.pathlength << std::endl;
+        std::cout << "length_scaled=" << sr.pathlength * map.getCellSize() << std::endl;
+    }
     std::cout << "time=" << sr.time << std::endl;
 }
 
 void Mission::saveSearchResultsToLog() {
-    logger->writeToLogSummary(sr.hppath, sr.numberofsteps, sr.nodescreated, sr.pathlength, sr.time, sr.max_angle, sr.sections);
+    logger->writeToLogSummary(sr.hppath, sr.numberofsteps, sr.nodescreated, sr.pathlength, sr.pathlength * map.getCellSize(),
+                              sr.time, sr.max_angle, sr.accum_angle, sr.sections);
 
     if (sr.pathfound) {
         logger->writeToLogPath(sr.lppath, sr.angles);

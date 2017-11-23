@@ -7,20 +7,20 @@
 #define CN_LOG          "_log"
 
 //Parametrs Type
-#define CN_PT_LOGLVL    0   // log level
-#define CN_PT_AL        1   // anglelimit
-#define CN_PT_D         2   // distance
-#define CN_PT_W         3   // weight
+#define CN_PT_LOGLVL    0   // log level --
+#define CN_PT_AL        1   // anglelimit --
+#define CN_PT_D         2   // distance --
+#define CN_PT_W         3   // weight --
 #define CN_PT_SL        4   // steplimit
-#define CN_PT_CHW       5   // curvature heuristic weight
+#define CN_PT_CHW       5   // curvature heuristic weight --
 #define CN_PT_DDF       6   // coefficient to decrease distance
-#define CN_PT_BT        7   // breaking ties
-#define CN_PT_DM        8   // distancemin
-#define CN_PT_PC        11  // pivot circle value
-#define CN_PT_NOP       12  // number of parents to increase radius
-#define CN_PT_PS        13  // post smoother
+#define CN_PT_BT        7   // breaking ties --
+#define CN_PT_DM        8   // distancemin --
+#define CN_PT_PC        9  // pivot circle value --
+#define CN_PT_NOP       10  // number of parents to increase radius --
+#define CN_PT_PS        11  // post smoother
 
-#define CN_PT_NUM       14  // number of parameters
+#define CN_PT_NUM       12  // number of parameters
 
 
 //Default values of parameters
@@ -52,7 +52,7 @@
  */
 
 
-#define CNS_TAG_ROOT "root"
+#define CNS_TAG_ROOT                "root"
     #define CNS_TAG_ALGORITHM       "algorithm"
     #define CNS_TAG_MAP             "map"
     #define CNS_TAG_HEIGHT          "height"
@@ -61,6 +61,7 @@
     #define CNS_TAG_SY              "starty"
     #define CNS_TAG_FX              "finishx"
     #define CNS_TAG_FY              "finishy"
+    #define CNS_TAG_CELLSIZE        "cellsize"
     #define CNS_TAG_GRID            "grid"
         #define CNS_TAG_ROW         "row"
     #define CNS_TAG_ANGLELIMIT      "anglelimit"
@@ -105,6 +106,7 @@
     #define CNS_TAG_ATTR_NUMOFSTEPS     "numberofsteps"
     #define CNS_TAG_ATTR_NODESCREATED   "nodescreated"
     #define CNS_TAG_ATTR_LENGTH         "pathlength"
+    #define CNS_TAG_ATTR_LENGTHSC       "length_scaled"
     #define CNS_TAG_ATTR_SECTIONS       "sections"
     #define CNS_TAG_ATTR_TIME           "time"
     #define CNS_TAG_ATTR_X              "x"
@@ -122,7 +124,8 @@
     #define CNS_TAG_ATTR_PF             "pathfound"
         #define CNS_TAG_ATTR_TRUE       "true"
         #define CNS_TAG_ATTR_FALSE      "false"
-    #define CNS_TAG_ATTR_MAXANGLE       "maxAngle"
+    #define CNS_TAG_ATTR_MAXANGLE       "max_angle"
+    #define CNS_TAG_ATTR_ACCUMANGLE     "accum_angle"
     #define CNS_TAG_ATTR_GMIN           "g-min"
     #define CNS_TAG_ATTR_GMAX           "g-max"
 

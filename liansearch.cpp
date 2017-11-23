@@ -64,19 +64,19 @@ inline void LianSearch::calculateCircle(int radius) { //here radius - radius of 
             delta += 2 * (++x - y--);
         }
 
-        for(int i = 0; i < circle_nodes.size(); i += 4)
+        for (int i = 0; i < circle_nodes.size(); i += 4)
             circleNodes[k].push_back(circle_nodes[i]);
-        for(int i = circle_nodes.size() - 7; i > 0; i -= 4)
+        for (int i = circle_nodes.size() - 7; i > 0; i -= 4)
             circleNodes[k].push_back(circle_nodes[i]);
-        for(int i = 7; i < circle_nodes.size(); i += 4)
+        for (int i = 7; i < circle_nodes.size(); i += 4)
             circleNodes[k].push_back(circle_nodes[i]);
-        for(int i = circle_nodes.size() - 6; i>0; i -= 4)
+        for (int i = circle_nodes.size() - 6; i > 0; i -= 4)
             circleNodes[k].push_back(circle_nodes[i]);
         circleNodes[k].pop_back();
     }
 }
 
-inline void LianSearch::calculatePivotCircle() {
+void LianSearch::calculatePivotCircle() {
     int add_x, add_y, num = pivotRadius + 0.5;
     Node node;
     for (int x = -num; x <= +num; ++x) {
@@ -94,7 +94,7 @@ inline void LianSearch::calculatePivotCircle() {
     }
 }
 
-inline bool LianSearch::checkPivotCircle(const Map &map, const Node &center) {
+bool LianSearch::checkPivotCircle(const Map &map, const Node &center) {
     int i, j;
     for (Node node : pivotCircle) {
         i = center.i + node.i;
@@ -104,9 +104,7 @@ inline bool LianSearch::checkPivotCircle(const Map &map, const Node &center) {
     return true;
 }
 
-
-
-inline void LianSearch::calculateDistances() {
+void LianSearch::calculateDistances() {
     int curDistance = distance;
     if(decreaseDistanceFactor > 1) {
         while(curDistance >= distanceMin) {
@@ -119,8 +117,7 @@ inline void LianSearch::calculateDistances() {
     listOfDistancesSize = listOfDistances.size();
 }
 
-
-inline void LianSearch::calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal) {
+void LianSearch::calculateLineSegment(std::vector<Node> &line, const Node &start, const Node &goal) {
     int x1 = start.i;
     int x2 = goal.i;
     int y1 = start.j;
@@ -244,7 +241,7 @@ inline void LianSearch::calculateLineSegment(std::vector<Node> &line, const Node
     }
 }
 
-inline bool LianSearch::checkLineSegment(const Map &map, const Node &start, const Node &goal) {
+bool LianSearch::checkLineSegment(const Map &map, const Node &start, const Node &goal) {
     int x1 = start.i;
     int x2 = goal.i;
     int y1 = start.j;
@@ -366,7 +363,7 @@ inline bool LianSearch::checkLineSegment(const Map &map, const Node &start, cons
     return true;
 }
 
-inline bool LianSearch::stopCriterion() {
+bool LianSearch::stopCriterion() {
     if(open.get_size() == 0) {
         std::cout << "OPEN list is empty!" << std::endl;
         return true;
@@ -379,11 +376,23 @@ inline bool LianSearch::stopCriterion() {
     return false;
 }
 
-inline double LianSearch::getCost(int a_i, int a_j, int b_i, int b_j) {
+inline double LianSearch::getCost(int a_i, int a_j, int b_i, int b_j) const {
     return sqrt(abs(a_i - b_i) * abs(a_i - b_i) + abs(a_j - b_j) * abs(a_j - b_j));
 }
 
-inline SearchResult LianSearch::startSearch(Logger *Log, const Map &map) {
+inline double LianSearch::calcAngle(const Node &dad, const Node &node, const Node &son) const {
+    double cos_angle = (node.j - dad.j) * (son.j - node.j) +
+                       (node.i - dad.i) * (son.i - node.i);
+    cos_angle /= getCost(son.i, son.j, node.i, node.j);
+    cos_angle /= getCost(node.i, node.j, dad.i, dad.j);
+
+    if (cos_angle < -1) cos_angle = -1;
+    if (cos_angle > 1) cos_angle = 1;
+
+    return acos(cos_angle);
+}
+
+SearchResult LianSearch::startSearch(Logger *Log, const Map &map) {
 
     calculateDistances();
 
@@ -443,12 +452,12 @@ inline SearchResult LianSearch::startSearch(Logger *Log, const Map &map) {
     sresult.nodescreated = open.get_size() + closeSize;
     sresult.numberofsteps = closeSize;
     if (pathFound) {
-        float max_angle = makeAngles(curNode);
+        sresult.pathlength = curNode.g;
         makePrimaryPath(curNode);
         if (postsmoother) hppath = smoothPath(hppath, map);
         makeSecondaryPath(curNode);
-        sresult.pathfound = true;
-        sresult.pathlength = curNode.g;
+        float max_angle = makeAngles();
+        sresult.pathfound = true;  
         sresult.hppath = hppath;
         sresult.lppath = lppath;
         sresult.angles = angles;
@@ -461,7 +470,7 @@ inline SearchResult LianSearch::startSearch(Logger *Log, const Map &map) {
     }
 }
 
-inline int LianSearch::tryToIncreaseRadius(Node curNode) {
+int LianSearch::tryToIncreaseRadius(Node curNode) {
     bool change = false;
     int i, k = 0;
     while (k < numOfParentsToIncreaseRadius) {
@@ -483,13 +492,13 @@ inline int LianSearch::tryToIncreaseRadius(Node curNode) {
     else return curNode.radius;
 }
 
-inline bool LianSearch::expand(const Node curNode, const Map &map) {
+bool LianSearch::expand(const Node curNode, const Map &map) {
     int k;
     for(k = 0; k < listOfDistancesSize; ++k)
         if(listOfDistances[k] == curNode.radius) break;
 
     std::vector<Node> circle_nodes = circleNodes[k];
-    int succi, succj;
+    Node successor;
     bool successors_are_fine = false, in_close;
     float cos_angle, angle, curvature;
     int position;
@@ -498,7 +507,9 @@ inline bool LianSearch::expand(const Node curNode, const Map &map) {
         std::vector<Node> successors;
         std::vector<int> succs;
         for (position = 0; position < circle_nodes.size(); ++position)
-            if (curNode.parent->i == curNode.i + circle_nodes[position].i && curNode.parent->j == curNode.j + circle_nodes[position].j) break;
+            if (curNode.parent->i == curNode.i + circle_nodes[position].i &&
+                curNode.parent->j == curNode.j + circle_nodes[position].j)
+                break;
 
         if (position < circle_nodes.size() / 2) position += circle_nodes.size() / 2;
         else position -= circle_nodes.size() / 2;
@@ -514,20 +525,13 @@ inline bool LianSearch::expand(const Node curNode, const Map &map) {
                 break;
         }
         for (int i=0; i < circle_nodes.size() / 2; i++) {
-            succi = curNode.i + circle_nodes[succs[i]].i;
-            succj = curNode.j + circle_nodes[succs[i]].j;
+            successor.i = curNode.i + circle_nodes[succs[i]].i;
+            successor.j = curNode.j + circle_nodes[succs[i]].j;
 
-            if (!map.CellOnGrid(succi, succj)) continue;
-            if (map.CellIsObstacle(succi, succj)) continue;
+            if (!map.CellOnGrid(successor.i, successor.j)) continue;
+            if (map.CellIsObstacle(successor.i, successor.j)) continue;
 
-            int scalar_product = (curNode.j - curNode.parent->j) * (succj - curNode.j) + (curNode.parent->i - curNode.i) * (curNode.i - succi);
-            cos_angle = (float) scalar_product / getCost(curNode.i, curNode.j, succi, succj);
-            cos_angle = (float) cos_angle / (curNode.g - curNode.parent->g);
-
-            if (cos_angle > 1) cos_angle = 1;
-            if (cos_angle < -1) cos_angle = -1;
-
-            angle = acos(cos_angle);
+            angle = calcAngle(*curNode.parent, curNode, successor);
             curvature = fabs(angle);
             angle = angle * 180 / CN_PI_CONSTANT;
 
@@ -541,33 +545,29 @@ inline bool LianSearch::expand(const Node curNode, const Map &map) {
         Node newNode;
         if (i == circle_nodes.size()) { // for cycle iterations, where i equals circle_nodes size, check path to the goal cell
             if (getCost(curNode.i, curNode.j, map.goal_i, map.goal_j) <= curNode.radius) {
-                succi = map.goal_i;
-                succj = map.goal_j;
+                successor.i = map.goal_i;
+                successor.j = map.goal_j;
                 if(curNode.parent != NULL) {
-                    int scalar_product = (curNode.j - curNode.parent->j) * (succj - curNode.j) + (curNode.parent->i - curNode.i) * (curNode.i - succi);
-                    cos_angle = (float) scalar_product / getCost(curNode.i, curNode.j, succi, succj);
-                    cos_angle = (float) cos_angle / getCost(curNode.parent->i, curNode.parent->j, curNode.i, curNode.j);
-                    angle = acos(cos_angle);
+                    angle = calcAngle(*curNode.parent, curNode, successor);
                     curvature = fabs(angle);
                     angle = angle * 180 / CN_PI_CONSTANT;
                     if (fabs(angle) > angleLimit) continue;
                 }
             } else continue;
         } else {
-            succi = curNode.i + circle_nodes[i].i;
-            succj = curNode.j + circle_nodes[i].j;
+            successor.i = curNode.i + circle_nodes[i].i;
+            successor.j = curNode.j + circle_nodes[i].j;
         }
-        if (!map.CellOnGrid(succi, succj)) continue;
-        if (map.CellIsObstacle(succi, succj)) continue;
+        if (!map.CellOnGrid(successor.i, successor.j)) continue;
+        if (map.CellIsObstacle(successor.i, successor.j)) continue;
 
-        newNode.i = succi;
-        newNode.j = succj;
+        newNode = successor;
         newNode.parent = &(close.find(curNode.convolution(map.getWidth()))->second);
         newNode.radius = newNode.parent->radius;
         newNode.pathToParent = false;
         newNode.g = newNode.parent->g + getCost(curNode.i, curNode.j, newNode.i, newNode.j);
         newNode.c = newNode.parent->c + curvature;
-        newNode.F = newNode.g + weight * getCost(succi, succj, map.goal_i, map.goal_j)
+        newNode.F = newNode.g + weight * getCost(successor.i, successor.j, map.goal_i, map.goal_j)
                               + curvatureHeuristicWeight * distance * newNode.c;
         newNode.pathToParent = checkLineSegment(map, *newNode.parent, newNode);
 
@@ -603,7 +603,7 @@ inline bool LianSearch::expand(const Node curNode, const Map &map) {
 }
 
 
-inline bool LianSearch::tryToDecreaseRadius(Node& curNode, int width) {
+bool LianSearch::tryToDecreaseRadius(Node& curNode, int width) {
     int i;
     for(i = listOfDistancesSize - 1; i >= 0; --i)
         if (curNode.radius == listOfDistances[i]) break;
@@ -612,7 +612,8 @@ inline bool LianSearch::tryToDecreaseRadius(Node& curNode, int width) {
         auto it = close.find(curNode.convolution(width));
         auto range = close.equal_range(it->first);
         for(auto it = range.first; it != range.second; ++it) {
-            if(it->second.parent && it->second.parent->i == curNode.parent->i && it->second.parent->j == curNode.parent->j) {
+            if(it->second.parent && it->second.parent->i == curNode.parent->i
+                                 && it->second.parent->j == curNode.parent->j) {
                 it->second.radius = listOfDistances[i + 1];
                 break;
             }
@@ -622,7 +623,8 @@ inline bool LianSearch::tryToDecreaseRadius(Node& curNode, int width) {
     return false;
 }
 
-inline void LianSearch::makePrimaryPath(Node curNode) {
+
+void LianSearch::makePrimaryPath(Node curNode) {
     hppath.push_front(curNode);
     curNode = *curNode.parent;
     do {
@@ -633,37 +635,37 @@ inline void LianSearch::makePrimaryPath(Node curNode) {
     hppath.push_front(curNode);
 }
 
-
-inline bool LianSearch::checkAngle(Node dad, Node node, Node son) {
-    double cos_angle = (node.j - dad.j) * (son.j - node.j) +
-                       (node.i - dad.i) * (son.i - node.i);
-    cos_angle /= getCost(son.i, son.j, node.i, node.j);
-    cos_angle /= getCost(node.i, node.j, dad.i, dad.j);
-    if (acos(cos_angle) <= angleLimit) {
+inline bool LianSearch::checkAngle(const Node &dad, const Node &node, const Node &son) const {
+    double angle = calcAngle(dad, node, son) * 180 /  CN_PI_CONSTANT;
+    if (fabs(angle) <= angleLimit) {
         return true;
     }
     return false;
 }
 
-inline std::list<Node> LianSearch::smoothPath(const std::list<Node>& path, const Map& map) {
+
+std::list<Node> LianSearch::smoothPath(const std::list<Node>& path, const Map& map) {
     std::list<Node> new_path;
+    sresult.pathlength = 0;
     auto it = path.begin();
     auto curr_it = path.begin();
-    Node start_section = *it;
-    Node end_section = *it;
+    Node start_section = path.front();
+    Node end_section = path.front();
     bool first = true;
-    Node previous;
+    Node previous = *it;
     ++it;
     while (end_section != path.back()) {
         for (it; it != path.end(); ++it) {
-            Node next = *(++it);
+            auto next = ++it;
             --it;
             if (!first && !checkAngle(previous, start_section, *it)) continue;
-            if (checkAngle(start_section, *it, next) && checkLineSegment(map, start_section, *it)) {
+            if ((next != path.end() && checkAngle(start_section, *it, *next) ||
+                 next == path.end()) && checkLineSegment(map, start_section, *it)) {
                 end_section = *it;
                 curr_it = it;
             }
         }
+        sresult.pathlength += (double)getCost(previous.i, previous.j, start_section.i, start_section.j);
         new_path.push_back(start_section);
         previous = start_section;
         first = false;
@@ -674,7 +676,8 @@ inline std::list<Node> LianSearch::smoothPath(const std::list<Node>& path, const
     return new_path;
 }
 
-inline void LianSearch::makeSecondaryPath(Node curNode) {
+
+void LianSearch::makeSecondaryPath(Node curNode) {
     std::vector<Node> lineSegment;
     auto it = hppath.begin();
     Node parent = *it++;
@@ -686,29 +689,21 @@ inline void LianSearch::makeSecondaryPath(Node curNode) {
     lppath.push_front(*hppath.begin());
 }
 
-inline double LianSearch::makeAngles(Node curNode) {
+
+double LianSearch::makeAngles() {
     angles.clear();
-    double cos_angle = 0;
     double max_angle = 0;
-    do {
-        if (curNode.parent != nullptr && curNode.parent->parent != nullptr) {
-            double angle = 0;
-            double dis1 = getCost(curNode.i, curNode.j, curNode.parent->i, curNode.parent->j);
-            double dis2 = getCost(curNode.parent->i, curNode.parent->j, curNode.parent->parent->i, curNode.parent->parent->j);
+    sresult.accum_angle = 0;
+    auto pred = hppath.begin();
+    auto current = ++hppath.begin();
+    auto succ = ++(++hppath.begin());
 
-            double scalarProduct = (curNode.j - curNode.parent->j) * (curNode.parent->j - curNode.parent->parent->j) +
-                                   (curNode.parent->i - curNode.i) * (curNode.parent->parent->i - curNode.parent->i);
-
-            if (dis1 != 0 && dis2 != 0) {
-                cos_angle = (double) scalarProduct / getCost(curNode.parent->i, curNode.parent->j, curNode.i, curNode.j);
-                cos_angle = (double) cos_angle / getCost(curNode.parent->parent->i, curNode.parent->parent->j, curNode.parent->i, curNode.parent->j);
-                angle = acos(cos_angle);
-                angle = angle * 180 / CN_PI_CONSTANT;
-                if (angle > max_angle) max_angle = angle;
-                angles.push_back(angle);
-            }
-        }
-        curNode = *curNode.parent;
-    } while(curNode.parent != nullptr);
+    while(succ != hppath.end()) {
+        double angle = calcAngle(*pred++, *current++, *succ++);
+        angle = angle * 180 / CN_PI_CONSTANT;
+        if (angle > max_angle) max_angle = angle;
+        sresult.accum_angle += angle;
+        angles.push_back(angle);
+    }
     return max_angle;
 }

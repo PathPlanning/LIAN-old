@@ -2,8 +2,8 @@
 #define CONFIG_H
 
 #include "gl_const.h"
-#include "tinyxml.h"
-#include "tinystr.h"
+#include "tinyxml/tinyxml.h"
+#include "tinyxml/tinystr.h"
 
 #include <algorithm>
 #include <iostream>
@@ -13,8 +13,8 @@
 class Config {
 
 private:
-    float *searchParams;
     int N;
+    float *searchParams;
 
 public:
     Config();

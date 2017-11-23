@@ -45,13 +45,13 @@ bool Config::getConfig(const char* FileName) {
 
     TiXmlElement *root = doc.FirstChildElement(CNS_TAG_ROOT);
     if (!root) {
-        std::cout << "No 'root' element found in XML file."<<std::endl;
+        std::cout << "No '" << CNS_TAG_ROOT << "' element found in XML file." << std::endl;
         return false;
     }
 
     TiXmlElement *algorithm = root->FirstChildElement(CNS_TAG_ALGORITHM);
     if (!algorithm) {
-        std::cout << "No 'algorithm' element found in XML file."<<std::endl;
+        std::cout << "No '" << CNS_TAG_ALGORITHM << "' element found in XML file." << std::endl;
         return false;
     }
 
@@ -79,8 +79,7 @@ bool Config::getConfig(const char* FileName) {
             }
         }
         if (angle == 0) {
-            std::cout << "Warning! '"<< CNS_TAG_ANGLELIMIT <<"' is zero. It's compared to " << CN_PTD_AL
-                      << "." << std::endl;
+            std::cout << "Warning! '"<< CNS_TAG_ANGLELIMIT << "' is zero. Set to default value: " << CN_PTD_AL << "." << std::endl;
             angle = CN_PTD_AL;
         }
         searchParams[CN_PT_AL] = angle;
@@ -101,7 +100,7 @@ bool Config::getConfig(const char* FileName) {
         }
 
         if (distance == 0) {
-            std::cout << "Warning! Wrong '" << CNS_TAG_DISTANCE << "' section. It's compared to " << CN_PTD_D
+            std::cout << "Warning! Wrong '" << CNS_TAG_DISTANCE << "' element. Set to default value: " << CN_PTD_D
                       << "." << std::endl;
             distance = CN_PTD_D;
         }
@@ -110,8 +109,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_WEIGHT);
         if (!element) {
-            std::cout << "Error! No '" << CNS_TAG_WEIGHT << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's compared to " << CN_PTD_W << "." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_WEIGHT << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: " << CN_PTD_W << "." << std::endl;
             weight = CN_PTD_W;
         } else {
             value = element->GetText();
@@ -122,7 +121,7 @@ bool Config::getConfig(const char* FileName) {
         }
 
         if (weight == 0) {
-            std::cout << "Warning! Wrong '" << CNS_TAG_WEIGHT << "' section. It's compared to " << CN_PTD_W
+            std::cout << "Warning! Wrong '" << CNS_TAG_WEIGHT << "' element. Set to default value: " << CN_PTD_W
                       << "." << std::endl;
             weight = CN_PTD_W;
         }
@@ -130,8 +129,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_BREAKINGTIE);
         if (!element) {
-            std::cout << "No '" << CNS_TAG_BREAKINGTIE << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's set to" << CNS_TAG_ATTR_GMAX <<"." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_BREAKINGTIE << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: " << CNS_TAG_ATTR_GMAX <<"." << std::endl;
             breakingties = CN_BT_GMAX;
         } else {
             value = element->GetText();
@@ -140,7 +139,7 @@ bool Config::getConfig(const char* FileName) {
             } else if (value == CNS_TAG_ATTR_GMIN) {
                 breakingties = CN_BT_GMIN;
             } else {
-                std::cout << "Wrong '" << CNS_TAG_BREAKINGTIE << "' element. Set to default value \""
+                std::cout << "Warning! Wrong '" << CNS_TAG_BREAKINGTIE << "' element. Set to default value: \""
                           << CNS_TAG_ATTR_GMAX << "\"." << std::endl;
                 breakingties = CN_BT_GMAX;
             }
@@ -150,8 +149,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_STEPLIMIT);
         if (!element) {
-            std::cout << "No '" << CNS_TAG_STEPLIMIT << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's compared to 0." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_STEPLIMIT << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: 0." << std::endl;
             steplimit = 0;
         } else {
             value = element->GetText();
@@ -167,8 +166,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_CURVHEURWEIGHT);
         if (!element) {
-            std::cout << "No '" << CNS_TAG_CURVHEURWEIGHT << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's compared to 0." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_CURVHEURWEIGHT << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: 0." << std::endl;
             curvatureHeuriscitWeight = 0;
         } else {
             value = element->GetText();
@@ -181,8 +180,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_SMOOTHER);
         if (!element) {
-            std::cout << "No '" << CNS_TAG_SMOOTHER << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's compared to 0." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_SMOOTHER << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: 0." << std::endl;
             postsmoother = 0;
         } else {
             value = element->GetText();
@@ -195,8 +194,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_DECRDISTFACTOR);
         if (!element) {
-            std::cout << "No '" << CNS_TAG_DECRDISTFACTOR << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's compared to " << CN_PTD_DDF << "." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_DECRDISTFACTOR << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: " << CN_PTD_DDF << "." << std::endl;
             decreaseDistance = CN_PTD_DDF;
         } else {
             value = element->GetText();
@@ -205,7 +204,8 @@ bool Config::getConfig(const char* FileName) {
             stream.clear();
             stream.str("");
             if(decreaseDistance == 0) {
-                std::cout << "Wrong '"<<CNS_TAG_DECRDISTFACTOR<<"' element."<<std::endl;
+                std::cout << "Warning! Wrong '" << CNS_TAG_DECRDISTFACTOR << "Set to default value: " << CN_PTD_DDF
+                          << "." << std::endl;
                 decreaseDistance = CN_PTD_DDF;
             }
         }
@@ -214,8 +214,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_DISTANCEMIN);
         if (!element) {
-            std::cout << "No '" << CNS_TAG_DISTANCEMIN << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's compared to " << CN_PTD_DMIN << "." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_DISTANCEMIN << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: " << CN_PTD_DMIN << "." << std::endl;
             distanceMin = CN_PTD_DMIN;
         } else {
             value = element->GetText();
@@ -224,7 +224,8 @@ bool Config::getConfig(const char* FileName) {
             stream.clear();
             stream.str("");
             if(distanceMin == 0) {
-                std::cout << "Wrong '" << CNS_TAG_DISTANCEMIN << "' element." << std::endl;
+                std::cout << "Warning! Wrong '" << CNS_TAG_DISTANCEMIN << "Set to default value: " << CN_PTD_DMIN
+                          << "." << std::endl;
                 distanceMin = CN_PTD_DMIN;
             }
         }
@@ -233,8 +234,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_PIVOTCIRCLE);
         if (!element) {
-            std::cout << "No '" << CNS_TAG_PIVOTCIRCLE << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's set to 0." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_PIVOTCIRCLE << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: 0." << std::endl;
             pivotRadius = 0;
         } else {
             value = element->GetText();
@@ -251,8 +252,8 @@ bool Config::getConfig(const char* FileName) {
 
         element = algorithm->FirstChildElement(CNS_TAG_NOFPTOINCRAD);
         if (!element) {
-            std::cout << "No '" << CNS_TAG_NOFPTOINCRAD << "' element found inside '" << CNS_TAG_ALGORITHM
-                      << "' section. It's compared to " << CN_PTD_NOFPTOINCRAD << "." << std::endl;
+            std::cout << "Warning! No '" << CNS_TAG_NOFPTOINCRAD << "' element found inside '" << CNS_TAG_ALGORITHM
+                      << "' section. Set to default value: " << CN_PTD_NOFPTOINCRAD << "." << std::endl;
             numOfParentsToIncreaseRadius = CN_PTD_NOFPTOINCRAD;
         } else {
             value = element->GetText();
@@ -261,7 +262,8 @@ bool Config::getConfig(const char* FileName) {
             stream.clear();
             stream.str("");
             if(numOfParentsToIncreaseRadius==0) {
-               std::cout << "Wrong '" << CNS_TAG_NOFPTOINCRAD << "' element." << std::endl;
+                std::cout << "Warning! Wrong '" << CNS_TAG_NOFPTOINCRAD << "Set to default value: " << CN_PTD_NOFPTOINCRAD
+                          << "." << std::endl;
                numOfParentsToIncreaseRadius = CN_PTD_NOFPTOINCRAD;
             }
         }
@@ -269,13 +271,13 @@ bool Config::getConfig(const char* FileName) {
 
     TiXmlElement *options = root->FirstChildElement(CNS_TAG_OPTIONS);
     if(!options) {
-        std::cout << "No '" << CNS_TAG_OPTIONS << "' element found in XML file." << std::endl;
+        std::cout << "Error! No '" << CNS_TAG_OPTIONS << "' element found in XML file." << std::endl;
         return false;
     }
 
     element = options->FirstChildElement(CNS_TAG_LOGLVL);
     if(!element) {
-        std::cout << "No '"<< CNS_TAG_LOGLVL << "' element found in XML file." << std::endl;
+        std::cout << "Error! No '"<< CNS_TAG_LOGLVL << "' element found in XML file." << std::endl;
         return false;
     }
 

@@ -8,9 +8,11 @@
 #include "searchresult.h"
 #include "xmllogger.h"
 
+
 #include <string>
 
 class Mission {
+
 public:
     Mission(const char* fName);
     ~Mission();

@@ -24,6 +24,7 @@ public:
     virtual void writeToLogOpenClose(const OpenList &open, const std::unordered_multimap<int, Node>& close, const int size) = 0;
     virtual void writeToLogPath(const std::list<Node> &path, const std::vector<float> &angles) = 0;
     virtual void writeToLogHpLevel(const std::list<Node> &path) = 0;
-    virtual void writeToLogSummary(const std::list<Node> &path, int numberofsteps, int nodescreated, float length,long double time, float max_angle, int sections) = 0;};
+    virtual void writeToLogSummary(const std::list<Node> &path, int numberofsteps, int nodescreated, float length, float length_scaled,
+                                   long double time, float max_angle, float accum_angle, int sections) = 0;};
 
 #endif

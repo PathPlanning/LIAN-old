@@ -2,8 +2,8 @@
 #define MAP_H
 
 #include "gl_const.h"
-#include "tinyxml.h"
-#include "tinystr.h"
+#include "tinyxml/tinyxml.h"
+#include "tinyxml/tinystr.h"
 
 #include <algorithm>
 #include <iostream>
@@ -16,6 +16,7 @@ class Map {
 private:
     int ** Grid;
     int height, width;
+    double CellSize;
 
 public:
     Map();
@@ -31,6 +32,7 @@ public:
 
     int getWidth() const;
     int getHeight() const;
+    double getCellSize() const;
 
 
     int start_i, start_j;

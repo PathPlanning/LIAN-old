@@ -14,20 +14,18 @@ win32 {
 QMAKE_LFLAGS += -static -static-libgcc -static-libstdc++
 }
 SOURCES += main.cpp \
-    tinyxmlparser.cpp \
-    tinyxmlerror.cpp \
-    tinyxml.cpp \
-    tinystr.cpp \
     liansearch.cpp \
     openlist.cpp \
     config.cpp \
     map.cpp \
     mission.cpp \
-    xmllogger.cpp
+    xmllogger.cpp \
+    tinyxml/tinystr.cpp \
+    tinyxml/tinyxml.cpp \
+    tinyxml/tinyxmlerror.cpp \
+    tinyxml/tinyxmlparser.cpp
 
 HEADERS += \
-    tinyxml.h \
-    tinystr.h \
     searchresult.h \
     gl_const.h \
     liansearch.h \
@@ -38,4 +36,6 @@ HEADERS += \
     logger.h \
     mission.h \
     search.h \
-    xmllogger.h
+    xmllogger.h \
+    tinyxml/tinystr.h \
+    tinyxml/tinyxml.h

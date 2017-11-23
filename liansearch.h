@@ -89,7 +89,10 @@ private:
     // check that there are no obstacle in a safety radius from a turn point
     bool checkPivotCircle(const Map &map, const Node &center);
 
-    double getCost(int a_i, int a_j, int b_i, int b_j);
+    double getCost(int a_i, int a_j, int b_i, int b_j) const;
+
+    double calcAngle(const Node &dad, const Node &node, const Node &son) const;
+    bool checkAngle(const Node &dad, const Node &node, const Node &son) const;
 
     bool stopCriterion(); // Check for the ending criteria. Return true if the algorithm should be stopped
 
@@ -97,11 +100,10 @@ private:
     bool tryToDecreaseRadius(Node &curNode, int width);
     void findSuccessors(const Node curNode,std::vector<Node> &successors, const Map &map);
     bool expand(const Node curNode, const Map &map);
-    bool checkAngle(Node dad, Node node, Node son);
     std::list<Node> smoothPath(const std::list<Node>& path, const Map& map);
     void makePrimaryPath(Node curNode);
     void makeSecondaryPath(Node curNode);
-    double makeAngles(Node curNode);
+    double makeAngles();
 };
 
 #endif // LIANSEARCH_H

@@ -12,6 +12,7 @@ struct SearchResult {
     unsigned int nodescreated;
     unsigned int numberofsteps;
     std::vector<float> angles;
+    float accum_angle;
     double time;
     float max_angle;
     int sections;
